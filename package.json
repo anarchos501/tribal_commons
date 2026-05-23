@@ -1,0 +1,8 @@
+{
+  "name": "tribal-commons",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
