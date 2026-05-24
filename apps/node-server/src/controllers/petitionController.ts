@@ -1,28 +1,40 @@
 import { Request, Response } from "express";
-import { Petition } from "../../../packages/shared-types/petition";
 
-let petitions: Petition[] = [];
+import {
+  getPetitionsData,
+  createPetitionData
+} from "../domains/petitions/petitionService";
 
-export const getPetitions = (req: Request, res: Response) => {
+export const getPetitions = async (
+  req: Request,
+  res: Response
+) => {
+  const petitions = await getPetitionsData();
+
   res.json(petitions);
 };
 
-export const createPetition = (req: Request, res: Response) => {
+export const createPetition = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    if (!req.body.projectId || !req.body.signer) {
+      return res.status(400).json({
+        error: "projectId and signer are required"
+      });
+    }
 
-  if (!req.body.projectId || !req.body.signer) {
-    return res.status(400).json({
-      error: "projectId and signer are required"
+    const petition = await createPetitionData(
+      req.body.projectId,
+      req.body.signer
+    );
+
+    res.status(201).json(petition);
+  } catch (error) {
+    res.status(400).json({
+      error:
+        "Unable to create petition. Verify projectId exists."
     });
   }
-
-  const newPetition: Petition = {
-    id: petitions.length + 1,
-    projectId: req.body.projectId,
-    signer: req.body.signer,
-    createdAt: new Date().toISOString()
-  };
-
-  petitions.push(newPetition);
-
-  res.status(201).json(newPetition);
 };
