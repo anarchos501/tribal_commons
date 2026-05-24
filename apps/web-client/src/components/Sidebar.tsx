@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { theme } from "../styles/theme";
 
 type SidebarProps = {
@@ -12,10 +13,9 @@ const navItems = [
   "Coordination Hub"
 ];
 
-function Sidebar({
-  activePage,
-  setActivePage
-}: SidebarProps) {
+function Sidebar({ activePage, setActivePage }: SidebarProps) {
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
   return (
     <aside
       style={{
@@ -52,30 +52,41 @@ function Sidebar({
       <nav>
         {navItems.map((item) => {
           const isActive = activePage === item;
+          const isHovered = hoveredItem === item;
 
           return (
             <button
               key={item}
               onClick={() => setActivePage(item)}
+              onMouseEnter={() => setHoveredItem(item)}
+              onMouseLeave={() => setHoveredItem(null)}
               style={{
                 width: "100%",
                 padding: "0.75rem",
                 marginBottom: "0.5rem",
                 backgroundColor: isActive
                   ? theme.colors.panelSecondary
-                  : "transparent",
+                  : isHovered
+                    ? "#202020"
+                    : "transparent",
                 color: isActive
                   ? theme.colors.primaryAction
-                  : theme.colors.textSecondary,
+                  : isHovered
+                    ? theme.colors.textPrimary
+                    : theme.colors.textSecondary,
                 border: "none",
                 borderLeft: isActive
                   ? `3px solid ${theme.colors.primaryAction}`
-                  : `3px solid transparent`,
+                  : isHovered
+                    ? `3px solid rgba(255, 122, 0, 0.25)`
+                    : "3px solid transparent",
                 cursor: "pointer",
                 textAlign: "left",
                 letterSpacing: "0.04em",
                 textTransform: "uppercase",
-                fontSize: "0.78rem"
+                fontSize: "0.78rem",
+                transition:
+                  "background-color 140ms ease, color 140ms ease, border-left-color 140ms ease"
               }}
             >
               {item}

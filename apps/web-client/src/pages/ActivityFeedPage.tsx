@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import PageLayout from "../components/PageLayout";
 import MetadataRow from "../components/MetadataRow";
@@ -26,7 +27,7 @@ function ActivityFeedPage() {
           <MetadataRow
   label="Activity"
   value={activity.type}
-  color="#c97a1f"
+  color={theme.colors.primaryActionMuted}
 />
         </Card>
       ))}

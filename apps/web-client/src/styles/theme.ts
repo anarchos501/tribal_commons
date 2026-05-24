@@ -6,17 +6,12 @@ export const theme = {
     panelSecondary: "#222222",
     border: "#333333",
 
-    textPrimary: "#eeeeee",
-    textSecondary: "#bbbbbb",
-    textMuted: "#888888",
+    textPrimary: "#f2f2f2",
+    textSecondary: "#c8c8c8",
+    textMuted: "#8a8a8a",
 
     primaryAction: "#ff7a00",
-
-    aid: "#c97a1f",
-    commons: "#b08d57",
-    petition: "#a85a1a",
-    warning: "#a13c2d",
-    diplomacy: "#6e3b52"
+    primaryActionMuted: "#a85a1a"
   },
 
   borderRadius: {

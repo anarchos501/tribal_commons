@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import PageLayout from "../components/PageLayout";
@@ -31,7 +32,7 @@ function TribesPage() {
 <MetadataRow
   label="Status"
   value={tribe.role}
-  color="#b08d57"
+  color={theme.colors.primaryActionMuted}
 />
 
           <div style={{ marginTop: "1rem" }}>

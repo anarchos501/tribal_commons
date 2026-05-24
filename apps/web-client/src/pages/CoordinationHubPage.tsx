@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import PageLayout from "../components/PageLayout";
@@ -28,7 +29,7 @@ function CoordinationHubPage() {
 <MetadataRow
   label="Type"
   value={item.type}
-  color="#a85a1a"
+  color={theme.colors.primaryActionMuted}
 />
 
           <div style={{ marginTop: "1rem" }}>

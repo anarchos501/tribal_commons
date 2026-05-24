@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import PageLayout from "../components/PageLayout";
 import MetadataRow from "../components/MetadataRow";
@@ -32,7 +33,7 @@ return (
   <MetadataRow
     label="Affiliation"
     value="Member"
-    color="#6e3b52"
+    color={theme.colors.primaryActionMuted}
   />
 </li>
           ))}
@@ -49,7 +50,7 @@ return (
   <MetadataRow
     label="Status"
     value={project.status}
-    color="#b08d57"
+    color={theme.colors.primaryActionMuted}
   />
 </li>
           ))}
@@ -66,7 +67,7 @@ return (
   <MetadataRow
     label="Status"
     value={aid.status}
-    color="#c97a1f"
+    color={theme.colors.primaryActionMuted}
   />
 </li>
           ))}
