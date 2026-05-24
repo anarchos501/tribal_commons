@@ -7,6 +7,9 @@ import petitionRoutes from "./routes/petitions";
 import tribeRoutes from "./routes/tribes";
 import commonsRoutes from "./routes/commons";
 import membershipRoutes from "./routes/memberships";
+import donationRoutes from "./routes/donations";
+import allocationRoutes from "./routes/allocations";
+import aidRoutes from "./routes/aid";
 
 dotenv.config();
 
@@ -21,6 +24,9 @@ app.use("/petitions", petitionRoutes);
 app.use("/tribes", tribeRoutes);
 app.use("/commons", commonsRoutes);
 app.use("/memberships", membershipRoutes);
+app.use("/donations", donationRoutes);
+app.use("/allocations", allocationRoutes);
+app.use("/aid", aidRoutes);
 
 app.get("/", (req, res) => {
   res.send("Tribal Commons backend is running.");
