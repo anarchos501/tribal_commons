@@ -1,36 +1,23 @@
-import type { Project } from "../../../../../packages/shared-types/project";
+import { prisma } from "../../lib/prisma";
 
-let projects: Project[] = [
-  {
-    id: 1,
-    tribeId: 1,
-    title: "Orbital Refinery Expansion",
-    status: "active"
-  },
-  {
-    id: 2,
-    tribeId: 1,
-    title: "Regional Logistics Network",
-    status: "proposal"
-  }
-];
-
-export const getProjectsData = (): Project[] => {
-  return projects;
+export const getProjectsData = async () => {
+  return prisma.project.findMany({
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
 };
 
-export const createProjectData = (
+export const createProjectData = async (
   tribeId: number,
   title: string
-): Project => {
-  const newProject: Project = {
-    id: projects.length + 1,
-    tribeId,
-    title,
-    status: "proposal"
-  };
+) => {
 
-  projects.push(newProject);
-
-  return newProject;
+  return prisma.project.create({
+    data: {
+      tribeId,
+      title,
+      status: "proposal"
+    }
+  });
 };

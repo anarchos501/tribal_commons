@@ -1,28 +1,50 @@
 import { Request, Response } from "express";
-import { Membership } from "../../../packages/shared-types/membership";
 
-let memberships: Membership[] = [];
+import {
+  getMembershipsData,
+  createMembershipData
+} from "../domains/memberships/membershipService";
 
-export const getMemberships = (req: Request, res: Response) => {
+export const getMemberships = async (
+  req: Request,
+  res: Response
+) => {
+
+  const memberships =
+    await getMembershipsData();
+
   res.json(memberships);
 };
 
-export const createMembership = (req: Request, res: Response) => {
+export const createMembership = async (
+  req: Request,
+  res: Response
+) => {
 
-  if (!req.body.tribeId || !req.body.playerName) {
-    return res.status(400).json({
-      error: "tribeId and playerName are required"
+  try {
+
+    if (
+      !req.body.tribeId ||
+      !req.body.role
+    ) {
+      return res.status(400).json({
+        error: "tribeId and role are required"
+      });
+    }
+
+    const membership =
+      await createMembershipData(
+        req.body.tribeId,
+        req.body.role
+      );
+
+    res.status(201).json(membership);
+
+  } catch (error) {
+
+    res.status(400).json({
+      error:
+        "Unable to create membership. Verify tribeId exists."
     });
   }
-
-  const newMembership: Membership = {
-    id: memberships.length + 1,
-    tribeId: req.body.tribeId,
-    playerName: req.body.playerName,
-    joinedAt: new Date().toISOString()
-  };
-
-  memberships.push(newMembership);
-
-  res.status(201).json(newMembership);
 };

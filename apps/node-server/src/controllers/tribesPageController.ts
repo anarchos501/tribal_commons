@@ -5,19 +5,19 @@ import {
   createTribeData
 } from "../domains/tribes/tribeService";
 
-export const getTribesPage = (
+export const getTribesPage = async (
   req: Request,
   res: Response
 ) => {
+  const tribes = await getTribesData();
 
-  res.json(getTribesData());
+  res.json(tribes);
 };
 
-export const createTribe = (
+export const createTribe = async (
   req: Request,
   res: Response
 ) => {
-
   if (
     !req.body.name ||
     req.body.name.trim() === "" ||
@@ -28,7 +28,7 @@ export const createTribe = (
     });
   }
 
-  const newTribe = createTribeData(
+  const newTribe = await createTribeData(
     req.body.name,
     req.body.locality
   );

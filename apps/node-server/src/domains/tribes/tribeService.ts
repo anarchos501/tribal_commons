@@ -1,38 +1,21 @@
-import type { Tribe } from "../../../../../packages/shared-types";
+import { prisma } from "../../lib/prisma";
 
-let tribes: Tribe[] = [
-  {
-    id: 1,
-    name: "Outer Rim Cooperative",
-    locality: "Outer Frontier",
-    role: "Member"
-  },
-
-  {
-    id: 2,
-    name: "Frontier Logistics Network",
-    locality: "Trade Corridor",
-    role: "Observer"
-  }
-];
-
-export const getTribesData = (): Tribe[] => {
-  return tribes;
+export const getTribesData = async () => {
+  return prisma.tribe.findMany({
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
 };
 
-export const createTribeData = (
+export const createTribeData = async (
   name: string,
   locality: string
-): Tribe => {
-
-  const newTribe: Tribe = {
-    id: tribes.length + 1,
-    name,
-    locality,
-    role: "Member"
-  };
-
-  tribes.push(newTribe);
-
-  return newTribe;
+) => {
+  return prisma.tribe.create({
+    data: {
+      name,
+      locality
+    }
+  });
 };

@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Tribe {
+  id         Int          @id @default(autoincrement())
+  name       String
+  locality   String
+  createdAt  DateTime     @default(now())
+
+  memberships Membership[]
+  projects    Project[]
+}
+
+model Membership {
+  id        Int      @id @default(autoincrement())
+  role      String
+
+  tribeId   Int
+  tribe     Tribe    @relation(fields: [tribeId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String
+  status      String
+  createdAt   DateTime @default(now())
+
+  tribeId     Int
+  tribe       Tribe    @relation(fields: [tribeId], references: [id])
+}
+
+model AidRequest {
+  id          Int      @id @default(autoincrement())
+  title       String
+  status      String
+  createdAt   DateTime @default(now())
+}
