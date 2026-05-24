@@ -12,6 +12,9 @@ import allocationRoutes from "./routes/allocations";
 import aidRoutes from "./routes/aid";
 import dashboardRoutes from "./routes/dashboard";
 import notificationRoutes from "./routes/notifications";
+import activityFeedRoutes from "./routes/activityFeed";
+import tribesPageRoutes from "./routes/tribesPage";
+import coordinationHubRoutes from "./routes/coordinationHub";
 
 dotenv.config();
 
@@ -31,6 +34,9 @@ app.use("/allocations", allocationRoutes);
 app.use("/aid", aidRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/activity-feed", activityFeedRoutes);
+app.use("/tribes-page", tribesPageRoutes);
+app.use("/coordination-hub", coordinationHubRoutes);
 
 app.get("/", (req, res) => {
   res.send("Tribal Commons backend is running.");
