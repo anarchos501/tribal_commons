@@ -1,12 +1,13 @@
 import { Router } from "express";
+
 import {
-  getTribes,
+  getTribesPage,
   createTribe
-} from "../controllers/tribeController";
+} from "../controllers/tribesPageController";
 
 const router = Router();
 
-router.get("/", getTribes);
+router.get("/", getTribesPage);
 router.post("/", createTribe);
 
 export default router;

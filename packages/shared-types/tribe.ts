@@ -1,7 +1,8 @@
 export interface Tribe {
   id: number;
   name: string;
-  description: string;
+  description?: string;
   locality: string;
-  createdAt: string;
+  role?: string;
+  createdAt?: string;
 }

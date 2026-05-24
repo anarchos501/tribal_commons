@@ -1,48 +1,18 @@
 import { Request, Response } from "express";
+import { getDashboardData } from "../services/dashboardService";
 
-export const getDashboard = (req: Request, res: Response) => {
+export const getDashboard = (
+  req: Request,
+  res: Response
+) => {
+  const playerNameParam = req.params.playerName;
 
-  const playerName = req.params.playerName;
+  const playerName = Array.isArray(playerNameParam)
+    ? playerNameParam[0]
+    : playerNameParam;
 
-  res.json({
-    player: playerName,
+  const dashboardData =
+    getDashboardData(playerName);
 
-    memberships: [
-      {
-        tribeId: 1,
-        tribeName: "Outer Rim Cooperative"
-      }
-    ],
-
-    myProjects: [
-      {
-        id: 1,
-        title: "Orbital Refinery Expansion",
-        status: "active"
-      }
-    ],
-
-    openAidRequests: [
-      {
-        id: 1,
-        title: "Recovery After Station Raid",
-        status: "open"
-      }
-    ],
-
-    recentDonations: [
-      {
-        projectId: 1,
-        resourceType: "Titanium",
-        amount: 500
-      }
-    ],
-
-    pendingPetitions: [
-      {
-        projectId: 2,
-        title: "Regional Logistics Network"
-      }
-    ]
-  });
+  res.json(dashboardData);
 };

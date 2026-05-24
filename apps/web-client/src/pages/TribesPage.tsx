@@ -9,7 +9,7 @@ function TribesPage() {
   const [tribes, setTribes] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/tribes-page")
+    fetch("http://localhost:3000/tribes")
       .then((response) => response.json())
       .then((data) => setTribes(data));
   }, []);
