@@ -159,3 +159,26 @@ model ActivityEvent {
 
   createdAt   DateTime @default(now())
 }
+
+model UserAccount {
+  id          Int      @id @default(autoincrement())
+  username String @unique
+  email       String?
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime?
+
+  characters  CharacterProfile[]
+}
+
+model CharacterProfile {
+  id                    Int      @id @default(autoincrement())
+  userAccountId          Int
+  characterName          String
+  frontierWalletAddress  String?
+  frontierCharacterId    String?
+  verified               Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  deletedAt              DateTime?
+
+  userAccount            UserAccount @relation(fields: [userAccountId], references: [id])
+}
