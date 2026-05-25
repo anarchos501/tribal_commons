@@ -143,3 +143,19 @@ model FederationRelationship {
 
   createdAt        DateTime @default(now())
 }
+
+model ActivityEvent {
+  id          Int      @id @default(autoincrement())
+
+  type        String
+  title       String
+  message     String
+
+  entityType  String?
+  entityId    Int?
+
+  tribeId     Int?
+  actorName   String?
+
+  createdAt   DateTime @default(now())
+}

@@ -62,13 +62,13 @@ export const updateProjectStatus = async (
     const { status } = req.body;
 
     const validStatuses = [
-      "proposal",
-      "active",
-      "sustained",
-      "completed",
-      "failed",
-      "archived"
-    ];
+  "proposal",
+  "staging",
+  "sustained",
+  "completed",
+  "failed",
+  "archived"
+];
 
     if (
       !status ||

@@ -1,37 +1,32 @@
-import type { Activity } from "../../../../packages/shared-types";
+import { prisma } from "../lib/prisma";
 
-export const getActivityFeedData = (): Activity[] => {
-  return [
-    {
-      id: 1,
-      type: "aid",
-      title: "Recovery After Station Raid",
-      message:
-        "Anarchos opened an aid request for Titanium support."
+export const getActivityFeedData = async () => {
+  return prisma.activityEvent.findMany({
+    orderBy: {
+      createdAt: "desc"
     },
+    take: 50
+  });
+};
 
-    {
-      id: 2,
-      type: "petition",
-      title: "Regional Logistics Network",
-      message:
-        "Petition requires additional signatures."
-    },
-
-    {
-      id: 3,
-      type: "donation",
-      title: "Project Donation",
-      message:
-        "500 Titanium donated to Orbital Refinery Expansion."
-    },
-
-    {
-      id: 4,
-      type: "commons",
-      title: "Commons Allocation Request",
-      message:
-        "2000 Titanium requested from Frontier Emergency Reserve."
+export const createActivityEventData = async (
+  type: string,
+  title: string,
+  message: string,
+  entityType?: string,
+  entityId?: number,
+  tribeId?: number,
+  actorName?: string
+) => {
+  return prisma.activityEvent.create({
+    data: {
+      type,
+      title,
+      message,
+      entityType,
+      entityId,
+      tribeId,
+      actorName
     }
-  ];
+  });
 };

@@ -1,19 +1,9 @@
-import type { Tribe } from "../../../../packages/shared-types";
+import { prisma } from "../lib/prisma";
 
-export const getTribesPageData = (): Tribe[] => {
-  return [
-    {
-      id: 1,
-      name: "Outer Rim Cooperative",
-      role: "Member",
-      locality: "Outer Frontier"
-    },
-
-    {
-      id: 2,
-      name: "Frontier Logistics Network",
-      role: "Observer",
-      locality: "Trade Corridor"
+export const getTribesPageData = async () => {
+  return prisma.tribe.findMany({
+    orderBy: {
+      createdAt: "desc"
     }
-  ];
+  });
 };

@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import { createActivityEventData } from "../../services/activityFeedService";
 
 export const getDonationsData = async () => {
   return prisma.donation.findMany({
@@ -17,7 +18,7 @@ export const createDonationData = async (
   resourceType: string,
   amount: number
 ) => {
-  return prisma.donation.create({
+  const donation = await prisma.donation.create({
     data: {
       projectId,
       playerName,
@@ -28,4 +29,16 @@ export const createDonationData = async (
       project: true
     }
   });
+
+  await createActivityEventData(
+    "donation",
+    "Contribution Recorded",
+    `${playerName} contributed ${amount} ${resourceType} to ${donation.project.title}.`,
+    "project",
+    donation.projectId,
+    donation.project.tribeId,
+    playerName
+  );
+
+  return donation;
 };

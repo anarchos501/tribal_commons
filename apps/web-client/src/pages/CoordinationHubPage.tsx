@@ -36,12 +36,27 @@ type Project = {
 
 const statuses = [
   "proposal",
-  "active",
+  "staging",
   "sustained",
   "completed",
   "failed",
   "archived"
 ];
+
+const formatStatus = (status: string) => {
+  if (status === "active") {
+    return "Staging";
+  }
+
+  return status
+    .split(" ")
+    .map(
+      (word) =>
+        word.charAt(0).toUpperCase() +
+        word.slice(1)
+    )
+    .join(" ");
+};
 
 function CoordinationHubPage() {
 
@@ -108,9 +123,9 @@ function CoordinationHubPage() {
 
     const statusColors: Record<string, string> = {
       proposal: "#888888",
-      active: "#ff7a00",
+      staging: "#d4a63a",
       sustained: "#4fa36d",
-      completed: "#6fbf73",
+      completed: "#2f7f91",
       failed: "#b04a4a",
       archived: "#666666"
     };
@@ -169,7 +184,7 @@ function CoordinationHubPage() {
               fontWeight: 600
             }}
           >
-            {project.status}
+            {formatStatus(project.status)}
           </div>
 
         </div>
@@ -283,7 +298,7 @@ function CoordinationHubPage() {
                 key={status}
                 value={status}
               >
-                {status}
+                {formatStatus(status)}
               </option>
             ))}
 
@@ -300,7 +315,7 @@ function CoordinationHubPage() {
           </Button>
 
           <Button>
-            Discuss
+            Open Discussion
           </Button>
 
           <Button variant="primary">

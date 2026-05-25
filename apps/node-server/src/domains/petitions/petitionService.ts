@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import { createActivityEventData } from "../../services/activityFeedService";
 
 export const getPetitionsData = async () => {
   return prisma.petition.findMany({
@@ -15,7 +16,7 @@ export const createPetitionData = async (
   projectId: number,
   signer: string
 ) => {
-  return prisma.petition.create({
+  const petition = await prisma.petition.create({
     data: {
       projectId,
       signer
@@ -24,4 +25,16 @@ export const createPetitionData = async (
       project: true
     }
   });
+
+  await createActivityEventData(
+    "petition",
+    "Petition Signed",
+    `${signer} signed support for ${petition.project.title}.`,
+    "project",
+    petition.projectId,
+    petition.project.tribeId,
+    signer
+  );
+
+  return petition;
 };

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { getDashboardData } from "../services/dashboardService";
 
-export const getDashboard = (
+export const getDashboard = async (
   req: Request,
   res: Response
 ) => {
@@ -12,7 +12,7 @@ export const getDashboard = (
     : playerNameParam;
 
   const dashboardData =
-    getDashboardData(playerName);
+    await getDashboardData(playerName);
 
   res.json(dashboardData);
 };

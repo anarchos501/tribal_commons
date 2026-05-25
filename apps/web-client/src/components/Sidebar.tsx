@@ -45,7 +45,7 @@ function Sidebar({ activePage, setActivePage }: SidebarProps) {
             fontSize: "0.8rem"
           }}
         >
-          Federation operations console
+          Organizational Console
         </p>
       </div>
 

@@ -37,6 +37,9 @@ type FederationRelationship = {
   createdAt: string;
 };
 
+const formatStatus = (status: string) =>
+  status.charAt(0).toUpperCase() + status.slice(1);
+
 function TribesPage() {
   const [tribes, setTribes] = useState<Tribe[]>([]);
   const [expandedTribeId, setExpandedTribeId] = useState<number | null>(null);
@@ -240,7 +243,9 @@ function TribesPage() {
 
                       <MetadataRow
                         label="Temperature"
-                        value={temperature?.temperature || "neutral"}
+                        value={formatStatus(
+  temperature?.temperature || "neutral"
+)}
                         color={theme.colors.primaryActionMuted}
                       />
 
@@ -288,7 +293,9 @@ function TribesPage() {
 
                     <MetadataRow
                       label="Relationship"
-                      value={relationship.relationshipType}
+                      value={formatStatus(
+  relationship.relationshipType
+)}
                       color={theme.colors.primaryActionMuted}
                     />
 

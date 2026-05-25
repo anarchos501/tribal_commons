@@ -111,17 +111,15 @@ export const getGovernanceTemperatureData = async (
   const averageValue =
     total / preferences.length;
 
-  let temperature = "neutral";
+  let temperature = "Neutral";
 
-  if (averageValue <= -1.25) {
-    temperature = "highly restrictive";
-  } else if (averageValue < -0.25) {
-    temperature = "restrictive";
-  } else if (averageValue > 1.25) {
-    temperature = "highly open";
-  } else if (averageValue > 0.25) {
-    temperature = "open";
-  }
+if (averageValue <= -0.33) {
+  temperature = "Restrictive";
+}
+
+if (averageValue >= 0.33) {
+  temperature = "Open";
+}
 
   return {
     topicId,

@@ -4,6 +4,16 @@ import Card from "../components/Card";
 import PageLayout from "../components/PageLayout";
 import MetadataRow from "../components/MetadataRow";
 
+const formatStatus = (status: string) =>
+  status
+    .split(" ")
+    .map(
+      (word) =>
+        word.charAt(0).toUpperCase() +
+        word.slice(1)
+    )
+    .join(" ");
+
 function DashboardPage() {
   const [dashboard, setDashboard] = useState<any>(null);
 
@@ -20,7 +30,7 @@ function DashboardPage() {
   return (
     <PageLayout
       title="Dashboard"
-      description="Personal overview, memberships, active projects, and open support needs."
+      description="Personal overview, memberships, active projects, and support needs."
     >
       <Card>
         <div style={{ marginBottom: "1rem" }}>
@@ -93,7 +103,7 @@ function DashboardPage() {
 
             <MetadataRow
               label="Status"
-              value={project.status}
+              value={formatStatus(project.status)}
               color={theme.colors.primaryActionMuted}
             />
           </div>
@@ -103,7 +113,7 @@ function DashboardPage() {
       <Card>
         <div style={{ marginBottom: "1rem" }}>
           <h2 style={{ margin: 0, marginBottom: "0.35rem" }}>
-            Aid Requests
+            Support Requests
           </h2>
 
           <div
@@ -114,7 +124,7 @@ function DashboardPage() {
               textTransform: "uppercase"
             }}
           >
-            Open support and recovery needs
+            Open support needs
           </div>
         </div>
 
@@ -132,7 +142,7 @@ function DashboardPage() {
 
             <MetadataRow
               label="Status"
-              value={aid.status}
+              value={formatStatus(aid.status)}
               color={theme.colors.primaryActionMuted}
             />
           </div>

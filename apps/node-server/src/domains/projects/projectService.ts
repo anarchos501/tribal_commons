@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import { createActivityEventData } from "../../services/activityFeedService";
 
 export const getProjectsData = async () => {
   return prisma.project.findMany({
@@ -16,13 +17,25 @@ export const createProjectData = async (
   tribeId: number,
   title: string
 ) => {
-  return prisma.project.create({
+  const project = await prisma.project.create({
     data: {
       tribeId,
       title,
       status: "proposal"
     }
   });
+
+  await createActivityEventData(
+    "project",
+    "Project Created",
+    `${title} was created as a new project proposal.`,
+    "project",
+    project.id,
+    tribeId,
+    "System"
+  );
+
+  return project;
 };
 
 export const updateProjectStatusData = async (
@@ -33,7 +46,7 @@ export const updateProjectStatusData = async (
     status
   };
 
-  if (status === "active") {
+  if (status === "staging") {
     lifecycleData.startedAt = new Date();
   }
 
@@ -49,10 +62,22 @@ export const updateProjectStatusData = async (
     lifecycleData.archivedAt = new Date();
   }
 
-  return prisma.project.update({
+  const project = await prisma.project.update({
     where: {
       id: projectId
     },
     data: lifecycleData
   });
+
+  await createActivityEventData(
+    "project",
+    "Project Status Updated",
+    `${project.title} moved to ${status}.`,
+    "project",
+    project.id,
+    project.tribeId,
+    "System"
+  );
+
+  return project;
 };
