@@ -17,61 +17,126 @@ function DashboardPage() {
     return <div>Loading dashboard...</div>;
   }
 
-return (
-  <PageLayout
-    title="Dashboard"
-    description="Personal overview and coordination access."
-  >
-
+  return (
+    <PageLayout
+      title="Dashboard"
+      description="Personal overview, memberships, active projects, and open support needs."
+    >
       <Card>
-        <h2>Memberships</h2>
-        <ul>
-          {dashboard.memberships.map((membership: any) => (
-            <li key={membership.tribeId}>
-  {membership.tribeName}
+        <div style={{ marginBottom: "1rem" }}>
+          <h2 style={{ margin: 0, marginBottom: "0.35rem" }}>
+            Memberships
+          </h2>
 
-  <MetadataRow
-    label="Affiliation"
-    value="Member"
-    color={theme.colors.primaryActionMuted}
-  />
-</li>
-          ))}
-        </ul>
+          <div
+            style={{
+              fontSize: "0.78rem",
+              color: theme.colors.textMuted,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase"
+            }}
+          >
+            Tribal affiliations
+          </div>
+        </div>
+
+        {dashboard.memberships.map((membership: any) => (
+          <div
+            key={membership.tribeId}
+            style={{
+              padding: "0.75rem 0",
+              borderTop: "1px solid rgba(255,255,255,0.04)"
+            }}
+          >
+            <h3 style={{ margin: 0, marginBottom: "0.5rem" }}>
+              {membership.tribeName}
+            </h3>
+
+            <MetadataRow
+              label="Affiliation"
+              value="Member"
+              color={theme.colors.primaryActionMuted}
+            />
+          </div>
+        ))}
       </Card>
 
       <Card>
-        <h2>Projects</h2>
-        <ul>
-          {dashboard.myProjects.map((project: any) => (
-<li key={project.id}>
-  {project.title}
+        <div style={{ marginBottom: "1rem" }}>
+          <h2 style={{ margin: 0, marginBottom: "0.35rem" }}>
+            Projects
+          </h2>
 
-  <MetadataRow
-    label="Status"
-    value={project.status}
-    color={theme.colors.primaryActionMuted}
-  />
-</li>
-          ))}
-        </ul>
+          <div
+            style={{
+              fontSize: "0.78rem",
+              color: theme.colors.textMuted,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase"
+            }}
+          >
+            Current operational commitments
+          </div>
+        </div>
+
+        {dashboard.myProjects.map((project: any) => (
+          <div
+            key={project.id}
+            style={{
+              padding: "0.75rem 0",
+              borderTop: "1px solid rgba(255,255,255,0.04)"
+            }}
+          >
+            <h3 style={{ margin: 0, marginBottom: "0.5rem" }}>
+              {project.title}
+            </h3>
+
+            <MetadataRow
+              label="Status"
+              value={project.status}
+              color={theme.colors.primaryActionMuted}
+            />
+          </div>
+        ))}
       </Card>
 
       <Card>
-        <h2>Aid Requests</h2>
-        <ul>
-          {dashboard.openAidRequests.map((aid: any) => (
-<li key={aid.id}>
-  {aid.title}
+        <div style={{ marginBottom: "1rem" }}>
+          <h2 style={{ margin: 0, marginBottom: "0.35rem" }}>
+            Aid Requests
+          </h2>
 
-  <MetadataRow
-    label="Status"
-    value={aid.status}
-    color={theme.colors.primaryActionMuted}
-  />
-</li>
-          ))}
-        </ul>
+          <div
+            style={{
+              fontSize: "0.78rem",
+              color: theme.colors.textMuted,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase"
+            }}
+          >
+            Open support and recovery needs
+          </div>
+        </div>
+
+        {dashboard.openAidRequests.map((aid: any) => (
+          <div
+            key={aid.id}
+            style={{
+              padding: "0.75rem 0",
+              borderTop: "1px solid rgba(255,255,255,0.04)"
+            }}
+          >
+            <h3 style={{ margin: 0, marginBottom: "0.5rem" }}>
+              {aid.title}
+            </h3>
+
+            <MetadataRow
+              label="Status"
+              value={aid.status}
+              color={theme.colors.primaryActionMuted}
+            />
+          </div>
+        ))}
       </Card>
     </PageLayout>
   );

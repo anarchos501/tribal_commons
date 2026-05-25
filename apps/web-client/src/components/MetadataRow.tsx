@@ -12,29 +12,41 @@ function MetadataRow({
   color = theme.colors.textSecondary
 }: MetadataRowProps) {
   return (
-    <p
+    <div
       style={{
-        margin: "0.35rem 0",
-        fontSize: "0.82rem",
-        color: theme.colors.textSecondary
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "1rem",
+        padding: "0.3rem 0",
+        borderBottom:
+          "1px solid rgba(255,255,255,0.03)"
       }}
     >
       <span
         style={{
           color: theme.colors.textMuted,
           textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          marginRight: "0.4rem",
-          fontSize: "0.72rem"
+          letterSpacing: "0.08em",
+          fontSize: "0.68rem",
+          fontWeight: 600,
+          opacity: 0.9
         }}
       >
         {label}
       </span>
 
-      <span style={{ color }}>
+      <span
+        style={{
+          color,
+          fontSize: "0.86rem",
+          fontWeight: 500,
+          textAlign: "right"
+        }}
+      >
         {value}
       </span>
-    </p>
+    </div>
   );
 }
 

@@ -105,34 +105,84 @@ function TribesPage() {
 
         return (
           <Card key={tribe.id}>
-            <h2>{tribe.name}</h2>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: "1rem",
+                gap: "1rem"
+              }}
+            >
+              <div>
+                <h2
+                  style={{
+                    margin: 0,
+                    marginBottom: "0.35rem"
+                  }}
+                >
+                  {tribe.name}
+                </h2>
 
-            <MetadataRow
-              label="Locality"
-              value={tribe.locality}
-              color={theme.colors.textMuted}
-            />
+                <div
+                  style={{
+                    fontSize: "0.78rem",
+                    color: theme.colors.textMuted,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase"
+                  }}
+                >
+                  Tribal Institution
+                </div>
+              </div>
 
-            <MetadataRow
-              label="Role"
-              value={tribe.role || "Member"}
-              color={theme.colors.primaryActionMuted}
-            />
+              <div
+                style={{
+                  padding: "0.3rem 0.7rem",
+                  borderRadius: "999px",
+                  backgroundColor: "rgba(255,255,255,0.04)",
+                  border: `1px solid ${theme.colors.primaryActionMuted}`,
+                  color: theme.colors.primaryActionMuted,
+                  fontSize: "0.74rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  fontWeight: 600
+                }}
+              >
+                {tribe.role || "Member"}
+              </div>
+            </div>
 
-            {tribe.createdAt && (
+            <div style={{ marginBottom: "1rem" }}>
               <MetadataRow
-                label="Created"
-                value={new Date(tribe.createdAt).toLocaleString()}
+                label="Locality"
+                value={tribe.locality}
                 color={theme.colors.textMuted}
               />
-            )}
+
+              <MetadataRow
+                label="Tribe ID"
+                value={String(tribe.id)}
+                color={theme.colors.textMuted}
+              />
+
+              {tribe.createdAt && (
+                <MetadataRow
+                  label="Created"
+                  value={new Date(tribe.createdAt).toLocaleString()}
+                  color={theme.colors.textMuted}
+                />
+              )}
+            </div>
 
             <div
               style={{
-                marginTop: "1rem",
                 display: "flex",
+                flexWrap: "wrap",
                 gap: "0.5rem",
-                flexWrap: "wrap"
+                alignItems: "center",
+                paddingTop: "0.5rem",
+                borderTop: "1px solid rgba(255,255,255,0.04)"
               }}
             >
               <Button onClick={() => toggleTribe(tribe.id)}>
@@ -148,10 +198,12 @@ function TribesPage() {
                 style={{
                   marginTop: "1.5rem",
                   paddingTop: "1rem",
-                  borderTop: "1px solid rgba(255,255,255,0.1)"
+                  borderTop: "1px solid rgba(255,255,255,0.06)"
                 }}
               >
-                <h3>Governance Temperatures</h3>
+                <h3 style={{ marginBottom: "0.75rem" }}>
+                  Governance Temperatures
+                </h3>
 
                 {topics.length === 0 && (
                   <p>No governance topics configured yet.</p>
@@ -161,9 +213,30 @@ function TribesPage() {
                   const temperature = temperaturesByTopic[topic.id];
 
                   return (
-                    <div key={topic.id} style={{ marginBottom: "1rem" }}>
-                      <h4>{topic.title}</h4>
-                      <p>{topic.description}</p>
+                    <div
+                      key={topic.id}
+                      style={{
+                        padding: "0.75rem 0",
+                        borderBottom: "1px solid rgba(255,255,255,0.03)"
+                      }}
+                    >
+                      <h4
+                        style={{
+                          margin: 0,
+                          marginBottom: "0.4rem"
+                        }}
+                      >
+                        {topic.title}
+                      </h4>
+
+                      <p
+                        style={{
+                          marginTop: 0,
+                          color: theme.colors.textSecondary
+                        }}
+                      >
+                        {topic.description}
+                      </p>
 
                       <MetadataRow
                         label="Temperature"
@@ -186,14 +259,27 @@ function TribesPage() {
                   );
                 })}
 
-                <h3 style={{ marginTop: "1.5rem" }}>Federation</h3>
+                <h3
+                  style={{
+                    marginTop: "1.5rem",
+                    marginBottom: "0.75rem"
+                  }}
+                >
+                  Federation
+                </h3>
 
                 {federation.length === 0 && (
                   <p>No federation relationships recorded yet.</p>
                 )}
 
                 {federation.map((relationship) => (
-                  <div key={relationship.id} style={{ marginBottom: "1rem" }}>
+                  <div
+                    key={relationship.id}
+                    style={{
+                      padding: "0.75rem 0",
+                      borderBottom: "1px solid rgba(255,255,255,0.03)"
+                    }}
+                  >
                     <MetadataRow
                       label="Target Tribe"
                       value={String(relationship.targetTribeId)}
@@ -207,7 +293,14 @@ function TribesPage() {
                     />
 
                     {relationship.note && (
-                      <p>{relationship.note}</p>
+                      <p
+                        style={{
+                          marginBottom: 0,
+                          color: theme.colors.textSecondary
+                        }}
+                      >
+                        {relationship.note}
+                      </p>
                     )}
                   </div>
                 ))}

@@ -8,8 +8,14 @@ type ButtonProps = {
   onClick?: () => void;
 };
 
-function Button({ children, variant = "default", onClick }: ButtonProps) {
-  const [hovered, setHovered] = useState(false);
+function Button({
+  children,
+  variant = "default",
+  onClick
+}: ButtonProps) {
+
+  const [hovered, setHovered] =
+    useState(false);
 
   const backgroundColors = {
     default: theme.colors.panelSecondary,
@@ -18,27 +24,61 @@ function Button({ children, variant = "default", onClick }: ButtonProps) {
   };
 
   const hoverColors = {
-    default: "#2a2a2a",
+    default: "#2b2b2b",
     primary: "#ff8f26",
     muted: "#b66a24"
   };
 
+  const borderColors = {
+    default: "rgba(255,255,255,0.06)",
+    primary: "rgba(255,122,0,0.35)",
+    muted: "rgba(255,122,0,0.18)"
+  };
+
   const buttonStyle: CSSProperties = {
     marginRight: "0.5rem",
-    padding: "0.5rem 1rem",
-    backgroundColor: hovered ? hoverColors[variant] : backgroundColors[variant],
+    padding: "0.55rem 1rem",
+
+    backgroundColor:
+      hovered
+        ? hoverColors[variant]
+        : backgroundColors[variant],
+
     color: theme.colors.textPrimary,
-    border: `1px solid ${theme.colors.border}`,
-    borderRadius: theme.borderRadius.button,
+
+    border: `1px solid ${
+      hovered
+        ? "rgba(255,255,255,0.12)"
+        : borderColors[variant]
+    }`,
+
+    borderRadius:
+      theme.borderRadius.button,
+
     cursor: "pointer",
-    transition: "background-color 120ms ease, border-color 120ms ease"
+
+    fontSize: "0.82rem",
+    fontWeight: 500,
+    letterSpacing: "0.02em",
+
+    transition:
+      "background-color 140ms ease, border-color 140ms ease, transform 140ms ease",
+
+    transform:
+      hovered
+        ? "translateY(-1px)"
+        : "translateY(0px)"
   };
 
   return (
     <button
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() =>
+        setHovered(true)
+      }
+      onMouseLeave={() =>
+        setHovered(false)
+      }
       style={buttonStyle}
     >
       {children}

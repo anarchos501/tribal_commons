@@ -16,19 +16,42 @@ function ActivityFeedPage() {
   return (
     <PageLayout
       title="Activity Feed"
-      description="Recent activities and updates across your tribes and projects.">
-
+      description="Chronological institutional memory across tribes, projects, aid, and coordination events."
+    >
       {activities.map((activity) => (
         <Card key={activity.id}>
-          <h2>{activity.title}</h2>
+          <div style={{ marginBottom: "1rem" }}>
+            <h2 style={{ margin: 0, marginBottom: "0.35rem" }}>
+              {activity.title}
+            </h2>
 
-          <p>{activity.message}</p>
+            <div
+              style={{
+                fontSize: "0.78rem",
+                color: theme.colors.textMuted,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase"
+              }}
+            >
+              Institutional Event
+            </div>
+          </div>
+
+          <p
+            style={{
+              color: theme.colors.textSecondary,
+              lineHeight: 1.5,
+              marginTop: 0
+            }}
+          >
+            {activity.message}
+          </p>
 
           <MetadataRow
-  label="Activity"
-  value={activity.type}
-  color={theme.colors.primaryActionMuted}
-/>
+            label="Activity"
+            value={activity.type}
+            color={theme.colors.primaryActionMuted}
+          />
         </Card>
       ))}
     </PageLayout>

@@ -11,6 +11,7 @@ function Card({ children }: CardProps) {
 
   const cardStyle: CSSProperties = {
     backgroundColor: theme.colors.panel,
+    color: theme.colors.textSecondary,
     padding: theme.spacing.panelPadding,
     borderRadius: theme.borderRadius.panel,
     marginBottom: theme.spacing.sectionGap,
