@@ -37,8 +37,13 @@ model Project {
   tribeId     Int
   tribe       Tribe    @relation(fields: [tribeId], references: [id])
 
-  petitions Petition[]
-  donations Donation[]
+  startedAt   DateTime?
+  completedAt DateTime?
+  failedAt    DateTime?
+  archivedAt  DateTime?
+
+  petitions   Petition[]
+  donations   Donation[]
 }
 
 model AidRequest {
