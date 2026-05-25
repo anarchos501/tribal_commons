@@ -85,3 +85,56 @@ model Donation {
   projectId    Int
   project      Project  @relation(fields: [projectId], references: [id])
 }
+
+model PersonalStanding {
+  id              Int      @id @default(autoincrement())
+
+  observerName    String
+  subjectType     String
+  subjectName     String
+  tribeContextId  Int?
+  value           Int
+  note            String?
+
+  visibility      String   @default("private")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model GovernanceTopic {
+  id          Int      @id @default(autoincrement())
+  tribeId     Int
+  key         String
+  title       String
+  description String
+  minLabel    String
+  maxLabel    String
+  createdAt   DateTime @default(now())
+
+  preferences GovernancePreference[]
+}
+
+model GovernancePreference {
+  id          Int      @id @default(autoincrement())
+  topicId     Int
+  memberName  String
+  value       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  topic       GovernanceTopic @relation(fields: [topicId], references: [id])
+
+  @@unique([topicId, memberName])
+}
+
+model FederationRelationship {
+  id               Int      @id @default(autoincrement())
+
+  sourceTribeId    Int
+  targetTribeId    Int
+
+  relationshipType String
+  note             String?
+
+  createdAt        DateTime @default(now())
+}

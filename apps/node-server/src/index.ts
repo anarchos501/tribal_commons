@@ -15,6 +15,9 @@ import dashboardRoutes from "./routes/dashboard";
 import notificationRoutes from "./routes/notifications";
 import activityFeedRoutes from "./routes/activityFeed";
 import coordinationHubRoutes from "./routes/coordinationHub";
+import standingsRoutes from "./routes/standings";
+import policyRoutes from "./routes/policies";
+import federationRoutes from "./routes/federation";
 
 dotenv.config();
 
@@ -37,6 +40,9 @@ app.use("/dashboard", dashboardRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/activity-feed", activityFeedRoutes);
 app.use("/coordination-hub", coordinationHubRoutes);
+app.use("/standings", standingsRoutes);
+app.use("/policies", policyRoutes);
+app.use("/federation", federationRoutes);
 
 app.get("/", (req, res) => {
   res.send("Tribal Commons backend is running.");
