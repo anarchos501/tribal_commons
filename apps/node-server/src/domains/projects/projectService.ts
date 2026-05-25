@@ -2,6 +2,10 @@ import { prisma } from "../../lib/prisma";
 
 export const getProjectsData = async () => {
   return prisma.project.findMany({
+    include: {
+      petitions: true,
+      donations: true
+    },
     orderBy: {
       createdAt: "desc"
     }
@@ -25,7 +29,6 @@ export const updateProjectStatusData = async (
   projectId: number,
   status: string
 ) => {
-
   const lifecycleData: any = {
     status
   };
