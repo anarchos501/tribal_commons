@@ -14,7 +14,7 @@ model Tribe {
 
   memberships Membership[]
   projects    Project[]
-  aidRequests AidRequest[]
+  supportRequests SupportRequest[]
   commonsPools CommonsPool[]
 }
 
@@ -43,10 +43,10 @@ model Project {
   archivedAt  DateTime?
 
   petitions   Petition[]
-  donations   Donation[]
+  contributions   Contribution[]
 }
 
-model AidRequest {
+model SupportRequest {
   id              Int      @id @default(autoincrement())
   tribeId         Int
   requesterName   String
@@ -80,7 +80,7 @@ model CommonsPool {
   tribe       Tribe    @relation(fields: [tribeId], references: [id])
 }
 
-model Donation {
+model Contribution {
   id           Int      @id @default(autoincrement())
   playerName   String
   resourceType String

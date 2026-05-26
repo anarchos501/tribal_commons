@@ -22,7 +22,7 @@ export const getDashboardData = async (
     });
 
   const supportRequests =
-    await prisma.aidRequest.findMany({
+    await prisma.supportRequest.findMany({
       orderBy: {
         createdAt: "desc"
       },

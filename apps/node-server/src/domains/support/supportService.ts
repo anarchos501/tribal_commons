@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { createActivityEventData } from "../../services/activityFeedService";
 
 export const getSupportRequestsData = async () => {
-  return prisma.aidRequest.findMany({
+  return prisma.supportRequest.findMany({
     include: {
       tribe: true
     },
@@ -22,7 +22,7 @@ export const createSupportRequestData = async (
   supportType: string
 ) => {
   const supportRequest =
-    await prisma.aidRequest.create({
+    await prisma.supportRequest.create({
       data: {
         tribeId,
         requesterName,
