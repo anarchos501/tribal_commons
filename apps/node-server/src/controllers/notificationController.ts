@@ -4,29 +4,37 @@ import type { Notification } from "../../../../packages/shared-types/notificatio
 let notifications: Notification[] = [
   {
     id: 1,
-    playerName: "Anarchos",
+    characterName: "Anarchos",
     type: "support_request",
-    message: "A new support request was opened in Outer Rim Cooperative.",
+    message:
+      "A new support request was opened in Outer Rim Cooperative.",
     read: false,
     createdAt: new Date().toISOString()
   },
   {
     id: 2,
-    playerName: "Anarchos",
+    characterName: "Anarchos",
     type: "petition",
-    message: "Regional Logistics Network requires additional signatures.",
+    message:
+      "Regional Logistics Network requires additional signatures.",
     read: false,
     createdAt: new Date().toISOString()
   }
 ];
 
-export const getNotifications = (req: Request, res: Response) => {
+export const getNotifications = (
+  req: Request,
+  res: Response
+) => {
+  const characterName =
+    req.params.characterName;
 
-  const playerName = req.params.playerName;
+  const characterNotifications =
+    notifications.filter(
+      notification =>
+        notification.characterName ===
+        characterName
+    );
 
-  const playerNotifications = notifications.filter(
-    notification => notification.playerName === playerName
-  );
-
-  res.json(playerNotifications);
+  res.json(characterNotifications);
 };

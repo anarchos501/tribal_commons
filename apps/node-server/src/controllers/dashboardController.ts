@@ -5,14 +5,17 @@ export const getDashboard = async (
   req: Request,
   res: Response
 ) => {
-  const playerNameParam = req.params.playerName;
+  const characterNameParam =
+    req.params.characterName;
 
-  const playerName = Array.isArray(playerNameParam)
-    ? playerNameParam[0]
-    : playerNameParam;
+  const characterName = Array.isArray(
+    characterNameParam
+  )
+    ? characterNameParam[0]
+    : characterNameParam;
 
   const dashboardData =
-    await getDashboardData(playerName);
+    await getDashboardData(characterName);
 
   res.json(dashboardData);
 };

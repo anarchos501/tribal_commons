@@ -44,7 +44,7 @@ export const createSupportRequestData = async (
     `${requesterName} requested ${amountRequested} ${resourceType} for ${title}.`,
     "support",
     supportRequest.id,
-    supportRequest.tribeId,
+    supportRequest.tribeId ?? undefined,
     requesterName
   );
 

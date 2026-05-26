@@ -1,6 +1,6 @@
 export interface Notification {
   id: number;
-  playerName: string;
+  characterName: string;
   type: string;
  message: string;
   read: boolean;

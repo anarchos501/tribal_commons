@@ -1,12 +1,13 @@
 import { prisma } from "../lib/prisma";
 
 export const getDashboardData = async (
-  playerName: string
+  characterName: string
 ) => {
   const memberships =
     await prisma.membership.findMany({
       include: {
-        tribe: true
+        tribe: true,
+        characterProfile: true
       },
       orderBy: {
         createdAt: "desc"
@@ -30,7 +31,7 @@ export const getDashboardData = async (
     });
 
   return {
-    player: playerName,
+    character: characterName,
     memberships,
     myProjects: projects,
     openSupportRequests: supportRequests

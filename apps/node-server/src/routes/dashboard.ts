@@ -3,6 +3,6 @@ import { getDashboard } from "../controllers/dashboardController";
 
 const router = Router();
 
-router.get("/:playerName", getDashboard);
+router.get("/:characterName", getDashboard);
 
 export default router;

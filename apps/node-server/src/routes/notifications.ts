@@ -3,6 +3,6 @@ import { getNotifications } from "../controllers/notificationController";
 
 const router = Router();
 
-router.get("/:playerName", getNotifications);
+router.get("/:characterName", getNotifications);
 
 export default router;

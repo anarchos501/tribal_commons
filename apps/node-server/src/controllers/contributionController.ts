@@ -21,19 +21,19 @@ export const createContribution = async (
   try {
     if (
       !req.body.projectId ||
-      !req.body.playerName ||
+      !req.body.contributorName ||
       !req.body.resourceType ||
       !req.body.amount
     ) {
       return res.status(400).json({
         error:
-          "projectId, playerName, resourceType, and amount are required"
+          "projectId, contributorName, resourceType, and amount are required"
       });
     }
 
     const contribution = await createContributionData(
       req.body.projectId,
-      req.body.playerName,
+      req.body.contributorName,
       req.body.resourceType,
       req.body.amount
     );
