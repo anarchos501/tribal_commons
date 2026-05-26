@@ -55,6 +55,9 @@ model Project {
   petitions       Petition[]
   contributions   Contribution[]
   supportRequests SupportRequest[]
+  memberships     ProjectMembership[]
+  actions         ProjectAction[]
+  governanceTopics GovernanceTopic[]
 }
 
 model SupportRequest {
@@ -104,7 +107,22 @@ model Petition {
   proposerCharacterId  Int?
   proposerCharacter    CharacterProfile? @relation("PetitionsProposed", fields: [proposerCharacterId], references: [id])
 
+  sponsors             PetitionSponsor[]
   supports             PetitionSupport[]
+}
+
+model PetitionSponsor {
+  id                   Int               @id @default(autoincrement())
+  sponsorName          String
+  createdAt            DateTime          @default(now())
+
+  petitionId           Int
+  petition             Petition          @relation(fields: [petitionId], references: [id])
+
+  sponsorCharacterId   Int?
+  sponsorCharacter     CharacterProfile? @relation(fields: [sponsorCharacterId], references: [id])
+
+  @@unique([petitionId, sponsorName])
 }
 
 model PetitionSupport {
@@ -119,6 +137,60 @@ model PetitionSupport {
   supporterCharacter   CharacterProfile? @relation(fields: [supporterCharacterId], references: [id])
 
   @@unique([petitionId, supporterName])
+}
+
+model ProjectMembership {
+  id                 Int               @id @default(autoincrement())
+  memberName         String
+  role               String            @default("member")
+  createdAt          DateTime          @default(now())
+  removedAt          DateTime?
+
+  projectId          Int
+  project            Project           @relation(fields: [projectId], references: [id])
+
+  characterProfileId Int?
+  characterProfile   CharacterProfile? @relation(fields: [characterProfileId], references: [id])
+
+  @@unique([projectId, memberName])
+}
+
+model ProjectAction {
+  id                  Int                    @id @default(autoincrement())
+  title               String
+  description         String
+  actionType          String
+  status              String                 @default("open")
+  proposerName        String
+  resourceType        String?
+  amount              Int?
+  resourceNote        String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  acceptedAt          DateTime?
+  archivedAt          DateTime?
+
+  projectId           Int
+  project             Project                @relation(fields: [projectId], references: [id])
+
+  proposerCharacterId Int?
+  proposerCharacter   CharacterProfile?      @relation("ProjectActionsProposed", fields: [proposerCharacterId], references: [id])
+
+  supports            ProjectActionSupport[]
+}
+
+model ProjectActionSupport {
+  id                   Int               @id @default(autoincrement())
+  supporterName        String
+  createdAt            DateTime          @default(now())
+
+  actionId             Int
+  action               ProjectAction     @relation(fields: [actionId], references: [id])
+
+  supporterCharacterId Int?
+  supporterCharacter   CharacterProfile? @relation(fields: [supporterCharacterId], references: [id])
+
+  @@unique([actionId, supporterName])
 }
 
 model CommonsPool {
@@ -179,6 +251,8 @@ model PersonalStanding {
 model GovernanceTopic {
   id          Int      @id @default(autoincrement())
   tribeId     Int
+  projectId   Int?
+  scope       String   @default("tribe")
   key         String
   title       String
   description String
@@ -187,6 +261,7 @@ model GovernanceTopic {
   createdAt   DateTime @default(now())
 
   tribe       Tribe    @relation(fields: [tribeId], references: [id])
+  project     Project? @relation(fields: [projectId], references: [id])
 
   preferences GovernancePreference[]
 }
@@ -267,7 +342,11 @@ model CharacterProfile {
   supportRequests         SupportRequest[]
   contributions           Contribution[]
   petitionsProposed       Petition[]              @relation("PetitionsProposed")
+  petitionSponsors        PetitionSponsor[]
   petitionSupports        PetitionSupport[]
+  projectMemberships      ProjectMembership[]
+  projectActionsProposed  ProjectAction[]         @relation("ProjectActionsProposed")
+  projectActionSupports   ProjectActionSupport[]
   governancePreferences   GovernancePreference[]
 
   standingsGiven          PersonalStanding[]     @relation("ObserverStandings")

@@ -1,12 +1,159 @@
 import { prisma } from "../../lib/prisma";
 import { resolveCharacterIdentity } from "../characters/characterIdentity";
+import {
+  defaultGovernanceTopics,
+  defaultProjectGovernanceTopics,
+  getRequiredSignaturePercentage,
+  getTemperatureLabel,
+  getTemperatureScore,
+  getThresholdBand
+} from "./governanceTemperature";
+
+const preferenceCooldownHours = 1;
+
+export const seedDefaultGovernanceTopicsForTribe =
+  async (tribeId: number) => {
+    const createdTopics = [];
+
+    for (const topic of defaultGovernanceTopics) {
+      const existing =
+        await prisma.governanceTopic.findFirst({
+          where: {
+            tribeId,
+            scope: "tribe",
+            key: topic.key
+          }
+        });
+
+      if (existing) {
+        continue;
+      }
+
+      const created =
+        await prisma.governanceTopic.create({
+          data: {
+            tribeId,
+            scope: "tribe",
+            key: topic.key,
+            title: topic.title,
+            description: topic.description,
+            minLabel: "Restrictive",
+            maxLabel: "Open"
+          }
+        });
+
+      createdTopics.push(created);
+    }
+
+    return createdTopics;
+  };
+
+export const seedDefaultGovernanceTopicsForProject =
+  async (projectId: number) => {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        tribe: {
+          deletedAt: null
+        }
+      }
+    });
+
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    const createdTopics = [];
+
+    for (const topic of defaultProjectGovernanceTopics) {
+      const existing =
+        await prisma.governanceTopic.findFirst({
+          where: {
+            tribeId: project.tribeId,
+            projectId: project.id,
+            scope: "project",
+            key: topic.key
+          }
+        });
+
+      if (existing) {
+        continue;
+      }
+
+      const created =
+        await prisma.governanceTopic.create({
+          data: {
+            tribeId: project.tribeId,
+            projectId: project.id,
+            scope: "project",
+            key: topic.key,
+            title: topic.title,
+            description: topic.description,
+            minLabel: "Restrictive",
+            maxLabel: "Open"
+          }
+        });
+
+      createdTopics.push(created);
+    }
+
+    return createdTopics;
+  };
+
+export const backfillDefaultGovernanceTopicsData =
+  async () => {
+    const tribes = await prisma.tribe.findMany({
+      where: {
+        deletedAt: null
+      }
+    });
+
+    let createdTopicCount = 0;
+    let createdProjectTopicCount = 0;
+
+    for (const tribe of tribes) {
+      const created =
+        await seedDefaultGovernanceTopicsForTribe(
+          tribe.id
+        );
+
+      createdTopicCount += created.length;
+    }
+
+    const projects = await prisma.project.findMany({
+      where: {
+        tribe: {
+          deletedAt: null
+        }
+      }
+    });
+
+    for (const project of projects) {
+      const created =
+        await seedDefaultGovernanceTopicsForProject(
+          project.id
+        );
+
+      createdProjectTopicCount += created.length;
+    }
+
+    return {
+      tribeCount: tribes.length,
+      projectCount: projects.length,
+      createdTopicCount,
+      createdProjectTopicCount
+    };
+  };
 
 export const getGovernanceTopicsData = async (
   tribeId: number
 ) => {
+  await seedDefaultGovernanceTopicsForTribe(tribeId);
+
   return prisma.governanceTopic.findMany({
     where: {
       tribeId,
+      scope: "tribe",
       tribe: {
         deletedAt: null
       }
@@ -26,16 +173,44 @@ export const createGovernanceTopicData = async (
   title: string,
   description: string,
   minLabel: string,
-  maxLabel: string
+  maxLabel: string,
+  scope = "tribe",
+  projectId?: number | null
 ) => {
   return prisma.governanceTopic.create({
     data: {
       tribeId,
+      scope,
+      projectId,
       key,
       title,
       description,
       minLabel,
       maxLabel
+    }
+  });
+};
+
+export const getProjectGovernanceTopicsData = async (
+  projectId: number
+) => {
+  await seedDefaultGovernanceTopicsForProject(projectId);
+
+  return prisma.governanceTopic.findMany({
+    where: {
+      projectId,
+      scope: "project",
+      project: {
+        tribe: {
+          deletedAt: null
+        }
+      }
+    },
+    include: {
+      preferences: true
+    },
+    orderBy: {
+      createdAt: "desc"
     }
   });
 };
@@ -46,6 +221,10 @@ export const setGovernancePreferenceData = async (
   value: number,
   memberCharacterId?: number | null
 ) => {
+  if (![-1, 0, 1].includes(value)) {
+    throw new Error("value must be -1, 0, or 1");
+  }
+
   const memberIdentity =
     await resolveCharacterIdentity(
       memberCharacterId,
@@ -75,9 +254,9 @@ export const setGovernancePreferenceData = async (
     const hoursSinceUpdate =
       (now - updated) / (1000 * 60 * 60);
 
-    if (hoursSinceUpdate < 24) {
+    if (hoursSinceUpdate < preferenceCooldownHours) {
       throw new Error(
-        "Preference can only be changed once every 24 hours"
+        "Preference can only be changed once every hour"
       );
     }
 
@@ -114,15 +293,6 @@ export const getGovernanceTemperatureData = async (
       }
     });
 
-  if (preferences.length === 0) {
-    return {
-      topicId,
-      preferenceCount: 0,
-      averageValue: 0,
-      temperature: "neutral"
-    };
-  }
-
   const total =
     preferences.reduce(
       (sum, preference) => sum + preference.value,
@@ -130,22 +300,29 @@ export const getGovernanceTemperatureData = async (
     );
 
   const averageValue =
-    total / preferences.length;
+    preferences.length === 0
+      ? 0
+      : total / preferences.length;
 
-  let temperature = "Neutral";
+  const temperatureScore =
+    getTemperatureScore(averageValue);
 
-if (averageValue <= -0.33) {
-  temperature = "Restrictive";
-}
-
-if (averageValue >= 0.33) {
-  temperature = "Open";
-}
+  const temperatureLabel =
+    getTemperatureLabel(temperatureScore);
 
   return {
     topicId,
     preferenceCount: preferences.length,
     averageValue,
-    temperature
+    temperatureScore,
+    temperatureLabel,
+    thresholdBand: getThresholdBand(temperatureScore),
+    requiredSignaturePercentage:
+      getRequiredSignaturePercentage(temperatureScore)
   };
+};
+
+export {
+  getRequiredSignaturePercentage,
+  getThresholdBand
 };

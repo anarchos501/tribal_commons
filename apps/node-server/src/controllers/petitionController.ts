@@ -60,6 +60,14 @@ export const createPetition = async (
       tribeId: req.body.tribeId,
       proposerName: req.body.proposerName,
       proposerCharacterId: req.body.proposerCharacterId,
+      sponsorNames: Array.isArray(req.body.sponsorNames)
+        ? req.body.sponsorNames
+        : undefined,
+      sponsorCharacterIds: Array.isArray(
+        req.body.sponsorCharacterIds
+      )
+        ? req.body.sponsorCharacterIds
+        : undefined,
       projectId: req.body.projectId ?? null,
       targetTribeId: req.body.targetTribeId ?? null,
       metadata: req.body.metadata

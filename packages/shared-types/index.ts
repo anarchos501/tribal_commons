@@ -7,6 +7,7 @@ export * from "./constants";
 export * from "./commonsAllocation";
 export * from "./commonsPool";
 export * from "./contribution";
+export * from "./governance";
 export * from "./membership";
 export * from "./notification";
 export * from "./petition";

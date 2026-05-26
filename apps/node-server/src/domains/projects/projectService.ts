@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import { createActivityEventData } from "../../services/activityFeedService";
+import { seedDefaultGovernanceTopicsForProject } from "../policies/policyService";
 
 export const getProjectsData = async () => {
   return prisma.project.findMany({
@@ -15,7 +16,36 @@ export const getProjectsData = async () => {
           proposerCharacter: true
         }
       },
-      contributions: true
+      contributions: true,
+      memberships: {
+        where: {
+          removedAt: null
+        },
+        include: {
+          characterProfile: true
+        }
+      },
+      actions: {
+        include: {
+          proposerCharacter: true,
+          supports: {
+            include: {
+              supporterCharacter: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
+      },
+      governanceTopics: {
+        where: {
+          scope: "project"
+        },
+        include: {
+          preferences: true
+        }
+      }
     },
     orderBy: {
       createdAt: "desc"
@@ -44,6 +74,8 @@ export const createProjectData = async (
     tribeId,
     "System"
   );
+
+  await seedDefaultGovernanceTopicsForProject(project.id);
 
   return project;
 };

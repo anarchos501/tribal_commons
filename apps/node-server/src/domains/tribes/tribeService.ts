@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import { seedDefaultGovernanceTopicsForTribe } from "../policies/policyService";
 
 export const getTribesData = async () => {
   return prisma.tribe.findMany({
@@ -15,10 +16,14 @@ export const createTribeData = async (
   name: string,
   locality: string
 ) => {
-  return prisma.tribe.create({
+  const tribe = await prisma.tribe.create({
     data: {
       name,
       locality
     }
   });
+
+  await seedDefaultGovernanceTopicsForTribe(tribe.id);
+
+  return tribe;
 };

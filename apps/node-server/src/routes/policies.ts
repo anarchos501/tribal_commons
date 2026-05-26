@@ -4,17 +4,29 @@ import {
   getGovernanceTopics,
   createGovernanceTopic,
   setGovernancePreference,
-  getGovernanceTemperature
+  getGovernanceTemperature,
+  backfillDefaultGovernanceTopics,
+  getProjectGovernanceTopics
 } from "../controllers/policyController";
 
 const router = Router();
 
-router.get("/:tribeId", getGovernanceTopics);
+router.post(
+  "/defaults/backfill",
+  backfillDefaultGovernanceTopics
+);
 
 router.get(
   "/topics/:topicId/temperature",
   getGovernanceTemperature
 );
+
+router.get(
+  "/projects/:projectId",
+  getProjectGovernanceTopics
+);
+
+router.get("/:tribeId", getGovernanceTopics);
 
 router.post("/topics", createGovernanceTopic);
 

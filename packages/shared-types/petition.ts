@@ -12,7 +12,16 @@ export interface Petition {
   metadata?: Record<string, unknown> | null;
   createdAt: string;
   updatedAt?: string;
+  sponsors?: PetitionSponsor[];
   supports?: PetitionSupport[];
+}
+
+export interface PetitionSponsor {
+  id: number;
+  petitionId: number;
+  sponsorName: string;
+  sponsorCharacterId?: number | null;
+  createdAt: string;
 }
 
 export interface PetitionSupport {

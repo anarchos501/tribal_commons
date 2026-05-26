@@ -4,7 +4,9 @@ import {
   getGovernanceTopicsData,
   createGovernanceTopicData,
   setGovernancePreferenceData,
-  getGovernanceTemperatureData
+  getGovernanceTemperatureData,
+  backfillDefaultGovernanceTopicsData,
+  getProjectGovernanceTopicsData
 } from "../domains/policies/policyService";
 
 export const getGovernanceTopics = async (
@@ -30,7 +32,9 @@ export const createGovernanceTopic = async (
       title,
       description,
       minLabel,
-      maxLabel
+      maxLabel,
+      scope,
+      projectId
     } = req.body;
 
     if (
@@ -53,7 +57,9 @@ export const createGovernanceTopic = async (
         title,
         description,
         minLabel,
-        maxLabel
+        maxLabel,
+        scope,
+        projectId
       );
 
     res.status(201).json(topic);
@@ -87,9 +93,9 @@ export const setGovernancePreference = async (
       });
     }
 
-    if (value < -2 || value > 2) {
+    if (![-1, 0, 1].includes(value)) {
       return res.status(400).json({
-        error: "value must be between -2 and 2"
+        error: "value must be -1, 0, or 1"
       });
     }
 
@@ -123,3 +129,30 @@ export const getGovernanceTemperature = async (
 
   res.json(temperature);
 };
+
+export const getProjectGovernanceTopics = async (
+  req: Request,
+  res: Response
+) => {
+  const projectId = Number(req.params.projectId);
+
+  const topics =
+    await getProjectGovernanceTopicsData(projectId);
+
+  res.json(topics);
+};
+
+export const backfillDefaultGovernanceTopics =
+  async (req: Request, res: Response) => {
+    try {
+      const result =
+        await backfillDefaultGovernanceTopicsData();
+
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({
+        error:
+          "Unable to backfill default governance topics"
+      });
+    }
+  };

@@ -9,6 +9,8 @@ type CreatePetitionInput = {
   tribeId: number;
   proposerName?: string;
   proposerCharacterId?: number | null;
+  sponsorNames?: string[];
+  sponsorCharacterIds?: number[];
   projectId?: number | null;
   targetTribeId?: number | null;
   metadata?: unknown;
@@ -47,6 +49,14 @@ export const getPetitionsData = async (
       targetTribe: true,
       project: true,
       proposerCharacter: true,
+      sponsors: {
+        include: {
+          sponsorCharacter: true
+        },
+        orderBy: {
+          createdAt: "asc"
+        }
+      },
       supports: {
         include: {
           supporterCharacter: true
@@ -69,6 +79,8 @@ export const createPetitionData = async ({
   tribeId,
   proposerName,
   proposerCharacterId,
+  sponsorNames,
+  sponsorCharacterIds,
   projectId,
   targetTribeId,
   metadata
@@ -89,6 +101,49 @@ export const createPetitionData = async ({
     );
   }
 
+  const sponsorSnapshots = new Map<
+    string,
+    {
+      sponsorName: string;
+      sponsorCharacterId?: number | null;
+    }
+  >();
+
+  sponsorSnapshots.set(proposerIdentity.characterName, {
+    sponsorName: proposerIdentity.characterName,
+    sponsorCharacterId:
+      proposerIdentity.characterProfileId
+  });
+
+  for (const sponsorName of sponsorNames ?? []) {
+    const trimmedName = sponsorName.trim();
+
+    if (trimmedName) {
+      sponsorSnapshots.set(trimmedName, {
+        sponsorName: trimmedName
+      });
+    }
+  }
+
+  if (sponsorCharacterIds?.length) {
+    const sponsorCharacters =
+      await prisma.characterProfile.findMany({
+        where: {
+          id: {
+            in: sponsorCharacterIds
+          },
+          deletedAt: null
+        }
+      });
+
+    for (const character of sponsorCharacters) {
+      sponsorSnapshots.set(character.characterName, {
+        sponsorName: character.characterName,
+        sponsorCharacterId: character.id
+      });
+    }
+  }
+
   const petition = await prisma.petition.create({
     data: {
       type,
@@ -100,6 +155,9 @@ export const createPetitionData = async ({
       proposerName: proposerIdentity.characterName,
       proposerCharacterId:
         proposerIdentity.characterProfileId,
+      sponsors: {
+        create: Array.from(sponsorSnapshots.values())
+      },
       metadata: metadata as any,
       status: "open"
     },
@@ -107,7 +165,8 @@ export const createPetitionData = async ({
       tribe: true,
       targetTribe: true,
       project: true,
-      supports: true
+      supports: true,
+      sponsors: true
     }
   });
 

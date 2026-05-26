@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type {
   CharacterProfile,
+  GovernanceTemperature,
+  GovernanceTopic,
   Petition,
   Tribe
 } from "@tribal-commons/shared-types";
@@ -20,21 +22,6 @@ import {
   formTitleStyle,
   textAreaStyle
 } from "../styles/forms";
-
-type GovernanceTopic = {
-  id: number;
-  title: string;
-  description: string;
-  minLabel: string;
-  maxLabel: string;
-};
-
-type GovernanceTemperature = {
-  topicId: number;
-  preferenceCount: number;
-  averageValue: number;
-  temperature: string;
-};
 
 type FederationRelationship = {
   id: number;
@@ -481,9 +468,19 @@ function TribesPage({
 
                       <MetadataRow
                         label="Temperature"
-                        value={formatStatus(
-  temperature?.temperature || "neutral"
-)}
+                        value={
+                          temperature
+                            ? `${temperature.temperatureScore} - ${temperature.temperatureLabel}`
+                            : "50 - Neutral"
+                        }
+                        color={theme.colors.primaryActionMuted}
+                      />
+
+                      <MetadataRow
+                        label="Required Signatures"
+                        value={`${
+                          temperature?.requiredSignaturePercentage ?? 50
+                        }%`}
                         color={theme.colors.primaryActionMuted}
                       />
 
@@ -494,7 +491,7 @@ function TribesPage({
                       />
 
                       <MetadataRow
-                        label="Range"
+                        label="Preference Range"
                         value={`${topic.minLabel} ↔ ${topic.maxLabel}`}
                         color={theme.colors.textMuted}
                       />
