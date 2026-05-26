@@ -15,8 +15,15 @@ export const getPersonalStandings = async (
     ? observerNameParam[0]
     : observerNameParam;
 
+  const observerCharacterId = req.query.observerCharacterId
+    ? Number(req.query.observerCharacterId)
+    : undefined;
+
   const standings =
-    await getPersonalStandingsData(observerName);
+    await getPersonalStandingsData(
+      observerName,
+      observerCharacterId
+    );
 
   res.json(standings);
 };
@@ -27,14 +34,16 @@ export const createPersonalStanding = async (
 ) => {
   try {
     if (
-      !req.body.observerName ||
+      (!req.body.observerName &&
+        !req.body.observerCharacterId) ||
       !req.body.subjectType ||
-      !req.body.subjectName ||
+      (!req.body.subjectName &&
+        !req.body.subjectCharacterId) ||
       typeof req.body.value !== "number"
     ) {
       return res.status(400).json({
         error:
-          "observerName, subjectType, subjectName, and numeric value are required"
+          "observer, subjectType, subject, and numeric value are required"
       });
     }
 
@@ -51,13 +60,18 @@ export const createPersonalStanding = async (
         req.body.subjectName,
         req.body.value,
         req.body.note,
-        req.body.tribeContextId
+        req.body.tribeContextId,
+        req.body.observerCharacterId,
+        req.body.subjectCharacterId
       );
 
     res.status(201).json(standing);
   } catch (error) {
     res.status(400).json({
-      error: "Unable to create personal standing"
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to create personal standing"
     });
   }
 };

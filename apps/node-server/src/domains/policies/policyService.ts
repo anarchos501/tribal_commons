@@ -1,11 +1,15 @@
 import { prisma } from "../../lib/prisma";
+import { resolveCharacterIdentity } from "../characters/characterIdentity";
 
 export const getGovernanceTopicsData = async (
   tribeId: number
 ) => {
   return prisma.governanceTopic.findMany({
     where: {
-      tribeId
+      tribeId,
+      tribe: {
+        deletedAt: null
+      }
     },
     include: {
       preferences: true
@@ -38,15 +42,28 @@ export const createGovernanceTopicData = async (
 
 export const setGovernancePreferenceData = async (
   topicId: number,
-  memberName: string,
-  value: number
+  memberName: string | undefined,
+  value: number,
+  memberCharacterId?: number | null
 ) => {
+  const memberIdentity =
+    await resolveCharacterIdentity(
+      memberCharacterId,
+      memberName
+    );
+
+  if (!memberIdentity.characterName) {
+    throw new Error(
+      "memberName or memberCharacterId is required"
+    );
+  }
+
   const existing =
     await prisma.governancePreference.findUnique({
       where: {
         topicId_memberName: {
           topicId,
-          memberName
+          memberName: memberIdentity.characterName
         }
       }
     });
@@ -69,7 +86,9 @@ export const setGovernancePreferenceData = async (
         id: existing.id
       },
       data: {
-        value
+        value,
+        memberCharacterId:
+          memberIdentity.characterProfileId
       }
     });
   }
@@ -77,8 +96,10 @@ export const setGovernancePreferenceData = async (
   return prisma.governancePreference.create({
     data: {
       topicId,
-      memberName,
-      value
+      memberName: memberIdentity.characterName,
+      value,
+      memberCharacterId:
+        memberIdentity.characterProfileId
     }
   });
 };

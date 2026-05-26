@@ -3,6 +3,11 @@ import { createActivityEventData } from "../../services/activityFeedService";
 
 export const getProjectsData = async () => {
   return prisma.project.findMany({
+    where: {
+      tribe: {
+        deletedAt: null
+      }
+    },
     include: {
       petitions: true,
       contributions: true

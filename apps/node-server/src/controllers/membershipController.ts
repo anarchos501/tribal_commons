@@ -35,7 +35,8 @@ export const createMembership = async (
     const membership =
       await createMembershipData(
         req.body.tribeId,
-        req.body.role
+        req.body.role,
+        req.body.characterProfileId
       );
 
     res.status(201).json(membership);

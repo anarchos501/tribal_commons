@@ -1,8 +1,34 @@
 import { useEffect, useState } from "react";
+import type {
+  CharacterProfile,
+  Membership,
+  Project,
+  SupportRequest
+} from "@tribal-commons/shared-types";
 import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import PageLayout from "../components/PageLayout";
 import MetadataRow from "../components/MetadataRow";
+import { apiPath } from "../api";
+
+type DashboardMembership = Membership & {
+  tribe: {
+    id: number;
+    name: string;
+  };
+};
+
+type DashboardData = {
+  character: string | null;
+  characterProfile: CharacterProfile | null;
+  memberships: DashboardMembership[];
+  myProjects: Project[];
+  openSupportRequests: SupportRequest[];
+};
+
+type DashboardPageProps = {
+  currentCharacter: CharacterProfile | null;
+};
 
 const formatStatus = (status: string) =>
   status
@@ -14,14 +40,21 @@ const formatStatus = (status: string) =>
     )
     .join(" ");
 
-function DashboardPage() {
-  const [dashboard, setDashboard] = useState<any>(null);
+function DashboardPage({
+  currentCharacter
+}: DashboardPageProps) {
+  const [dashboard, setDashboard] =
+    useState<DashboardData | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/dashboard/Anarchos")
+    const query = currentCharacter
+      ? `?characterProfileId=${currentCharacter.id}`
+      : "";
+
+    fetch(apiPath(`/dashboard${query}`))
       .then((response) => response.json())
       .then((data) => setDashboard(data));
-  }, []);
+  }, [currentCharacter]);
 
   if (!dashboard) {
     return <div>Loading dashboard...</div>;
@@ -50,16 +83,16 @@ function DashboardPage() {
           </div>
         </div>
 
-        {dashboard.memberships.map((membership: any) => (
+        {dashboard.memberships.map((membership) => (
           <div
-            key={membership.tribeId}
+            key={membership.id}
             style={{
               padding: "0.75rem 0",
               borderTop: "1px solid rgba(255,255,255,0.04)"
             }}
           >
             <h3 style={{ margin: 0, marginBottom: "0.5rem" }}>
-              {membership.tribeName}
+              {membership.tribe.name}
             </h3>
 
             <MetadataRow
@@ -89,7 +122,7 @@ function DashboardPage() {
           </div>
         </div>
 
-        {dashboard.myProjects.map((project: any) => (
+        {dashboard.myProjects.map((project) => (
           <div
             key={project.id}
             style={{
@@ -128,7 +161,7 @@ function DashboardPage() {
           </div>
         </div>
 
-        {dashboard.openSupportRequests.map((support: any) => (
+        {dashboard.openSupportRequests.map((support) => (
           <div
             key={support.id}
             style={{

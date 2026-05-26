@@ -3,6 +3,6 @@ export interface CommonsPool {
   tribeId: number;
   name: string;
   description: string;
-  resources: string[];
   createdAt: string;
+  deletedAt?: string | null;
 }

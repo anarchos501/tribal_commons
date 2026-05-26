@@ -20,8 +20,16 @@ export const createSupportRequest = async (
 ) => {
   try {
     if (
-      !req.body.tribeId ||
-      !req.body.requesterName ||
+      !req.body.requesterName &&
+      !req.body.requesterCharacterId
+    ) {
+      return res.status(400).json({
+        error:
+          "requesterName or requesterCharacterId is required"
+      });
+    }
+
+    if (
       !req.body.title ||
       !req.body.description ||
       !req.body.resourceType ||
@@ -34,20 +42,24 @@ export const createSupportRequest = async (
     }
 
     const supportRequest = await createSupportRequestData(
-      req.body.tribeId,
+      req.body.tribeId ?? null,
       req.body.requesterName,
       req.body.title,
       req.body.description,
       req.body.resourceType,
       req.body.amountRequested,
-      req.body.supportType
+      req.body.supportType,
+      req.body.requesterCharacterId,
+      req.body.projectId ?? null
     );
 
     res.status(201).json(supportRequest);
   } catch (error) {
     res.status(400).json({
       error:
-        "Unable to create support request. Verify tribeId exists."
+        error instanceof Error
+          ? error.message
+          : "Unable to create support request. Verify related ids exist."
     });
   }
 };

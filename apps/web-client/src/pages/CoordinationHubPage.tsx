@@ -1,35 +1,17 @@
 import { useEffect, useState } from "react";
+import type {
+  Contribution,
+  Petition,
+  Project as SharedProject
+} from "@tribal-commons/shared-types";
 import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import PageLayout from "../components/PageLayout";
 import MetadataRow from "../components/MetadataRow";
+import { apiPath } from "../api";
 
-type Petition = {
-  id: number;
-  signer: string;
-};
-
-type Contribution = {
-  id: number;
-  contributorName: string;
-  resourceType: string;
-  amount: number;
-};
-
-type Project = {
-  id: number;
-  title: string;
-  status: string;
-  tribeId: number;
-
-  createdAt: string;
-
-  startedAt?: string;
-  completedAt?: string;
-  failedAt?: string;
-  archivedAt?: string;
-
+type Project = SharedProject & {
   petitions: Petition[];
   contributions: Contribution[];
 };
@@ -67,7 +49,7 @@ function CoordinationHubPage() {
     useState<number[]>([]);
 
   const loadProjects = () => {
-    fetch("http://localhost:3000/projects")
+    fetch(apiPath("/projects"))
       .then((response) => response.json())
       .then((data) => setProjects(data));
   };
@@ -82,7 +64,7 @@ function CoordinationHubPage() {
   ) => {
 
     fetch(
-      `http://localhost:3000/projects/${projectId}/status`,
+      apiPath(`/projects/${projectId}/status`),
       {
         method: "PATCH",
         headers: {

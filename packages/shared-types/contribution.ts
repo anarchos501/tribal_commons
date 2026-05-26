@@ -1,11 +1,12 @@
 export interface Contribution {
   id: number;
 
-  projectId?: number;
-  supportRequestId?: number;
+  projectId?: number | null;
+  supportRequestId?: number | null;
+  commonsPoolId?: number | null;
+  contributorCharacterId?: number | null;
 
   contributorName: string;
-  sourceType?: "peer" | "commons";
 
   resourceType: string;
   amount: number;

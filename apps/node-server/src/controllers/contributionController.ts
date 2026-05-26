@@ -19,23 +19,49 @@ export const createContribution = async (
   res: Response
 ) => {
   try {
+    const targetCount = [
+      req.body.projectId,
+      req.body.supportRequestId,
+      req.body.commonsPoolId
+    ].filter((targetId) => targetId != null).length;
+
     if (
-      !req.body.projectId ||
-      !req.body.contributorName ||
-      !req.body.resourceType ||
-      !req.body.amount
+      targetCount !== 1
     ) {
       return res.status(400).json({
         error:
-          "projectId, contributorName, resourceType, and amount are required"
+          "Exactly one of projectId, supportRequestId, or commonsPoolId is required"
+      });
+    }
+
+    if (
+      !req.body.contributorName &&
+      !req.body.contributorCharacterId
+    ) {
+      return res.status(400).json({
+        error:
+          "contributorName or contributorCharacterId is required"
+      });
+    }
+
+    if (
+      !req.body.resourceType ||
+      typeof req.body.amount !== "number"
+    ) {
+      return res.status(400).json({
+        error:
+          "resourceType and numeric amount are required"
       });
     }
 
     const contribution = await createContributionData(
-      req.body.projectId,
+      req.body.projectId ?? null,
       req.body.contributorName,
       req.body.resourceType,
-      req.body.amount
+      req.body.amount,
+      req.body.supportRequestId ?? null,
+      req.body.commonsPoolId ?? null,
+      req.body.contributorCharacterId
     );
 
     res.status(201).json(contribution);
@@ -44,7 +70,9 @@ export const createContribution = async (
 
     res.status(400).json({
       error:
-        "Unable to create contribution. Verify projectId exists."
+        error instanceof Error
+          ? error.message
+          : "Unable to create contribution. Verify related ids exist."
     });
   }
 };

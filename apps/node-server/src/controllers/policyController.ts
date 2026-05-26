@@ -72,17 +72,18 @@ export const setGovernancePreference = async (
     const {
       topicId,
       memberName,
-      value
+      value,
+      memberCharacterId
     } = req.body;
 
     if (
       !topicId ||
-      !memberName ||
+      (!memberName && !memberCharacterId) ||
       typeof value !== "number"
     ) {
       return res.status(400).json({
         error:
-          "topicId, memberName, and numeric value are required"
+          "topicId, memberName or memberCharacterId, and numeric value are required"
       });
     }
 
@@ -96,7 +97,8 @@ export const setGovernancePreference = async (
       await setGovernancePreferenceData(
         topicId,
         memberName,
-        value
+        value,
+        memberCharacterId
       );
 
     res.status(201).json(preference);

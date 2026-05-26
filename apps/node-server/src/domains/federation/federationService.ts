@@ -5,7 +5,13 @@ export const getFederationRelationshipsData = async (
 ) => {
   return prisma.federationRelationship.findMany({
     where: {
-      sourceTribeId
+      sourceTribeId,
+      sourceTribe: {
+        deletedAt: null
+      },
+      targetTribe: {
+        deletedAt: null
+      }
     },
     orderBy: {
       createdAt: "desc"

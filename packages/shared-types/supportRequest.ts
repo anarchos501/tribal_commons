@@ -1,6 +1,8 @@
 export interface SupportRequest {
   id: number;
-  tribeId: number;
+  tribeId?: number | null;
+  projectId?: number | null;
+  requesterCharacterId?: number | null;
   requesterName: string;
   title: string;
   description: string;

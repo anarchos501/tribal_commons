@@ -5,4 +5,5 @@ export interface Tribe {
   locality: string;
   role?: string;
   createdAt?: string;
+  deletedAt?: string | null;
 }

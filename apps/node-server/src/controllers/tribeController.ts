@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Tribe } from "../../../packages/shared-types/tribe";
+import type { Tribe } from "../../../../packages/shared-types/tribe";
 
 let tribes: Tribe[] = [];
 

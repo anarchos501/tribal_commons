@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { CommonsAllocation } from "../../../packages/shared-types/commonsAllocation";
+import type { CommonsAllocation } from "../../../../packages/shared-types/commonsAllocation";
 
 let allocations: CommonsAllocation[] = [];
 

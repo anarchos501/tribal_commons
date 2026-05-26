@@ -1,12 +1,14 @@
 import { prisma } from "../../lib/prisma";
 import { createActivityEventData } from "../../services/activityFeedService";
+import { resolveCharacterIdentity } from "../characters/characterIdentity";
 
 export const getContributionsData = async () => {
   return prisma.contribution.findMany({
     include: {
       project: true,
       supportRequest: true,
-      commonsPool: true
+      commonsPool: true,
+      contributorCharacter: true
     },
     orderBy: {
       createdAt: "desc"
@@ -16,45 +18,74 @@ export const getContributionsData = async () => {
 
 export const createContributionData = async (
   projectId: number | null,
-  contributorName: string,
+  contributorName: string | undefined,
   resourceType: string,
   amount: number,
   supportRequestId?: number | null,
-  commonsPoolId?: number | null
+  commonsPoolId?: number | null,
+  contributorCharacterId?: number | null
 ) => {
+  const targetCount = [
+    projectId,
+    supportRequestId,
+    commonsPoolId
+  ].filter((targetId) => targetId != null).length;
+
+  if (targetCount !== 1) {
+    throw new Error(
+      "Contribution must target exactly one project, support request, or commons pool"
+    );
+  }
+
+  const contributorIdentity =
+    await resolveCharacterIdentity(
+      contributorCharacterId,
+      contributorName
+    );
+
+  if (!contributorIdentity.characterName) {
+    throw new Error(
+      "contributorName or contributorCharacterId is required"
+    );
+  }
+
   const contribution =
     await prisma.contribution.create({
       data: {
         projectId,
-        contributorName,
+        contributorName:
+          contributorIdentity.characterName,
         resourceType,
         amount,
         supportRequestId,
-        commonsPoolId
+        commonsPoolId,
+        contributorCharacterId:
+          contributorIdentity.characterProfileId
       },
       include: {
         project: true,
         supportRequest: true,
-        commonsPool: true
+        commonsPool: true,
+        contributorCharacter: true
       }
     });
 
   let activityMessage =
-    `${contributorName} contributed ${amount} ${resourceType}.`;
+    `${contribution.contributorName} contributed ${amount} ${resourceType}.`;
 
   if (contribution.project) {
     activityMessage =
-      `${contributorName} contributed ${amount} ${resourceType} to ${contribution.project.title}.`;
+      `${contribution.contributorName} contributed ${amount} ${resourceType} to ${contribution.project.title}.`;
   }
 
   if (contribution.supportRequest) {
     activityMessage =
-      `${contributorName} contributed ${amount} ${resourceType} to support request "${contribution.supportRequest.title}".`;
+      `${contribution.contributorName} contributed ${amount} ${resourceType} to support request "${contribution.supportRequest.title}".`;
   }
 
   if (contribution.commonsPool) {
     activityMessage =
-      `${contributorName} contributed ${amount} ${resourceType} to commons pool "${contribution.commonsPool.name}".`;
+      `${contribution.contributorName} contributed ${amount} ${resourceType} to commons pool "${contribution.commonsPool.name}".`;
   }
 
   await createActivityEventData(
@@ -73,7 +104,8 @@ export const createContributionData = async (
       contribution.commonsPoolId ??
       contribution.id,
     contribution.project?.tribeId,
-    contributorName
+    contribution.contributorName,
+    contribution.contributorCharacterId ?? undefined
   );
 
   return contribution;

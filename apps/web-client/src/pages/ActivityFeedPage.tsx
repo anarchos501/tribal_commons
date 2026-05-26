@@ -1,21 +1,11 @@
 import { useEffect, useState } from "react";
+import type { Activity } from "@tribal-commons/shared-types";
 import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import PageLayout from "../components/PageLayout";
 import MetadataRow from "../components/MetadataRow";
-
-type Activity = {
-  id: number;
-  type: string;
-  title: string;
-  message: string;
-  entityType?: string;
-  entityId?: number;
-  tribeId?: number;
-  actorName?: string;
-  createdAt?: string;
-};
+import { apiPath } from "../api";
 
 const filters = [
   "all",
@@ -45,7 +35,7 @@ function ActivityFeedPage() {
     useState("all");
 
   useEffect(() => {
-    fetch("http://localhost:3000/activity-feed")
+    fetch(apiPath("/activity-feed"))
       .then((response) => response.json())
       .then((data) => setActivities(data));
   }, []);

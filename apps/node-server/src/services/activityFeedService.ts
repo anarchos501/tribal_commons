@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { resolveCharacterIdentity } from "../domains/characters/characterIdentity";
 
 export const getActivityFeedData = async () => {
   return prisma.activityEvent.findMany({
@@ -16,8 +17,14 @@ export const createActivityEventData = async (
   entityType?: string,
   entityId?: number,
   tribeId?: number,
-  actorName?: string
+  actorName?: string,
+  actorCharacterId?: number
 ) => {
+  const actorIdentity = await resolveCharacterIdentity(
+    actorCharacterId,
+    actorName
+  );
+
   return prisma.activityEvent.create({
     data: {
       type,
@@ -26,7 +33,8 @@ export const createActivityEventData = async (
       entityType,
       entityId,
       tribeId,
-      actorName
+      actorName: actorIdentity.characterName,
+      actorCharacterId: actorIdentity.characterProfileId
     }
   });
 };

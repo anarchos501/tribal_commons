@@ -2,6 +2,12 @@ import { prisma } from "../../lib/prisma";
 
 export const getCommonsPoolsData = async () => {
   return prisma.commonsPool.findMany({
+    where: {
+      deletedAt: null,
+      tribe: {
+        deletedAt: null
+      }
+    },
     include: {
       tribe: true
     },

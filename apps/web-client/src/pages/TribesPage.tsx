@@ -1,17 +1,11 @@
 import { useEffect, useState } from "react";
+import type { Tribe } from "@tribal-commons/shared-types";
 import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import PageLayout from "../components/PageLayout";
 import MetadataRow from "../components/MetadataRow";
-
-type Tribe = {
-  id: number;
-  name: string;
-  locality: string;
-  role?: string;
-  createdAt?: string;
-};
+import { apiPath } from "../api";
 
 type GovernanceTopic = {
   id: number;
@@ -48,23 +42,23 @@ function TribesPage() {
   const [federationByTribe, setFederationByTribe] = useState<Record<number, FederationRelationship[]>>({});
 
   useEffect(() => {
-    fetch("http://localhost:3000/tribes")
+    fetch(apiPath("/tribes"))
       .then((response) => response.json())
       .then((data) => setTribes(data));
   }, []);
 
   const loadTribeDetails = async (tribeId: number) => {
-    const topicsResponse = await fetch(`http://localhost:3000/policies/${tribeId}`);
+    const topicsResponse = await fetch(apiPath(`/policies/${tribeId}`));
     const topics = await topicsResponse.json();
 
-    const federationResponse = await fetch(`http://localhost:3000/federation/${tribeId}`);
+    const federationResponse = await fetch(apiPath(`/federation/${tribeId}`));
     const federation = await federationResponse.json();
 
     const temperatures: Record<number, GovernanceTemperature> = {};
 
     for (const topic of topics) {
       const temperatureResponse = await fetch(
-        `http://localhost:3000/policies/topics/${topic.id}/temperature`
+        apiPath(`/policies/topics/${topic.id}/temperature`)
       );
 
       temperatures[topic.id] = await temperatureResponse.json();

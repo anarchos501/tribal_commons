@@ -14,8 +14,16 @@ export const getDashboard = async (
     ? characterNameParam[0]
     : characterNameParam;
 
+  const characterProfileId =
+    typeof req.query.characterProfileId === "string"
+      ? Number(req.query.characterProfileId)
+      : undefined;
+
   const dashboardData =
-    await getDashboardData(characterName);
+    await getDashboardData(
+      characterName,
+      characterProfileId
+    );
 
   res.json(dashboardData);
 };

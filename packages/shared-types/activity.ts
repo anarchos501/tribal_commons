@@ -5,4 +5,10 @@ export interface Activity {
   type: ActivityType;
   title: string;
   message: string;
+  entityType?: string | null;
+  entityId?: number | null;
+  tribeId?: number | null;
+  actorName?: string | null;
+  actorCharacterId?: number | null;
+  createdAt?: string;
 }

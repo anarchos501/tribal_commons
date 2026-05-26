@@ -2,6 +2,9 @@ import { prisma } from "../../lib/prisma";
 
 export const getTribesData = async () => {
   return prisma.tribe.findMany({
+    where: {
+      deletedAt: null
+    },
     orderBy: {
       createdAt: "desc"
     }

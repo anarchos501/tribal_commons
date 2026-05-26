@@ -2,8 +2,24 @@ import { prisma } from "../../lib/prisma";
 
 export const getMembershipsData = async () => {
   return prisma.membership.findMany({
+    where: {
+      tribe: {
+        deletedAt: null
+      },
+      OR: [
+        {
+          characterProfileId: null
+        },
+        {
+          characterProfile: {
+            deletedAt: null
+          }
+        }
+      ]
+    },
     include: {
-      tribe: true
+      tribe: true,
+      characterProfile: true
     },
     orderBy: {
       createdAt: "desc"
@@ -13,15 +29,18 @@ export const getMembershipsData = async () => {
 
 export const createMembershipData = async (
   tribeId: number,
-  role: string
+  role: string,
+  characterProfileId?: number
 ) => {
   return prisma.membership.create({
     data: {
       tribeId,
-      role
+      role,
+      characterProfileId
     },
     include: {
-      tribe: true
+      tribe: true,
+      characterProfile: true
     }
   });
 };
