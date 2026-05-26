@@ -18,6 +18,8 @@ model Tribe {
   supportRequests               SupportRequest[]
   commonsPools                  CommonsPool[]
   governanceTopics              GovernanceTopic[]
+  petitions                     Petition[]                 @relation("PetitionContextTribe")
+  targetFederationPetitions      Petition[]                 @relation("PetitionTargetTribe")
 
   sourceFederationRelationships FederationRelationship[] @relation("SourceFederationRelationships")
   targetFederationRelationships FederationRelationship[] @relation("TargetFederationRelationships")
@@ -80,15 +82,43 @@ model SupportRequest {
 }
 
 model Petition {
-  id                  Int               @id @default(autoincrement())
-  signer              String
-  createdAt           DateTime          @default(now())
+  id                   Int               @id @default(autoincrement())
+  type                 String
+  title                String
+  description          String
+  status               String            @default("open")
+  proposerName         String
+  metadata             Json?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
-  projectId           Int
-  project             Project           @relation(fields: [projectId], references: [id])
+  tribeId              Int
+  tribe                Tribe             @relation("PetitionContextTribe", fields: [tribeId], references: [id])
 
-  signerCharacterId   Int?
-  signerCharacter     CharacterProfile? @relation(fields: [signerCharacterId], references: [id])
+  projectId            Int?
+  project              Project?          @relation(fields: [projectId], references: [id])
+
+  targetTribeId        Int?
+  targetTribe          Tribe?            @relation("PetitionTargetTribe", fields: [targetTribeId], references: [id])
+
+  proposerCharacterId  Int?
+  proposerCharacter    CharacterProfile? @relation("PetitionsProposed", fields: [proposerCharacterId], references: [id])
+
+  supports             PetitionSupport[]
+}
+
+model PetitionSupport {
+  id                   Int               @id @default(autoincrement())
+  supporterName        String
+  createdAt            DateTime          @default(now())
+
+  petitionId           Int
+  petition             Petition          @relation(fields: [petitionId], references: [id])
+
+  supporterCharacterId Int?
+  supporterCharacter   CharacterProfile? @relation(fields: [supporterCharacterId], references: [id])
+
+  @@unique([petitionId, supporterName])
 }
 
 model CommonsPool {
@@ -236,7 +266,8 @@ model CharacterProfile {
   memberships             Membership[]
   supportRequests         SupportRequest[]
   contributions           Contribution[]
-  petitions               Petition[]
+  petitionsProposed       Petition[]              @relation("PetitionsProposed")
+  petitionSupports        PetitionSupport[]
   governancePreferences   GovernancePreference[]
 
   standingsGiven          PersonalStanding[]     @relation("ObserverStandings")

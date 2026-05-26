@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import type {
+  CharacterProfile,
   Contribution,
   Petition,
   Project as SharedProject
@@ -10,10 +12,24 @@ import Button from "../components/Button";
 import PageLayout from "../components/PageLayout";
 import MetadataRow from "../components/MetadataRow";
 import { apiPath } from "../api";
+import {
+  fieldGridStyle,
+  fieldStyle,
+  formActionsStyle,
+  formHeaderStyle,
+  formHintStyle,
+  formPanelStyle,
+  formTitleStyle,
+  textAreaStyle
+} from "../styles/forms";
 
 type Project = SharedProject & {
   petitions: Petition[];
   contributions: Contribution[];
+};
+
+type CoordinationHubPageProps = {
+  currentCharacter: CharacterProfile | null;
 };
 
 const statuses = [
@@ -40,13 +56,24 @@ const formatStatus = (status: string) => {
     .join(" ");
 };
 
-function CoordinationHubPage() {
+function CoordinationHubPage({
+  currentCharacter
+}: CoordinationHubPageProps) {
 
   const [projects, setProjects] =
     useState<Project[]>([]);
 
   const [expandedProjects, setExpandedProjects] =
     useState<number[]>([]);
+  const [supportProjectId, setSupportProjectId] =
+    useState<number | null>(null);
+  const [supportForm, setSupportForm] = useState({
+    title: "",
+    description: "",
+    resourceType: "",
+    amountRequested: 1,
+    supportType: "peer"
+  });
 
   const loadProjects = () => {
     fetch(apiPath("/projects"))
@@ -90,6 +117,41 @@ function CoordinationHubPage() {
       }
 
       return [...current, projectId];
+    });
+  };
+
+  const submitProjectSupportRequest = (
+    event: FormEvent<HTMLFormElement>,
+    project: Project
+  ) => {
+    event.preventDefault();
+
+    fetch(apiPath("/support/requests"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        ...supportForm,
+        requesterName:
+          currentCharacter?.characterName ??
+          "Unscoped Character",
+        requesterCharacterId: currentCharacter?.id,
+        tribeId: project.tribeId,
+        projectId: project.id,
+        amountRequested: Number(
+          supportForm.amountRequested
+        )
+      })
+    }).then(() => {
+      setSupportProjectId(null);
+      setSupportForm({
+        title: "",
+        description: "",
+        resourceType: "",
+        amountRequested: 1,
+        supportType: "peer"
+      });
     });
   };
 
@@ -304,7 +366,124 @@ function CoordinationHubPage() {
             Contribute
           </Button>
 
+          <Button
+            onClick={() =>
+              setSupportProjectId(
+                supportProjectId === project.id
+                  ? null
+                  : project.id
+              )
+            }
+          >
+            Request Support
+          </Button>
+
         </div>
+
+        {supportProjectId === project.id && (
+          <form
+            onSubmit={(event) =>
+              submitProjectSupportRequest(
+                event,
+                project
+              )
+            }
+            style={formPanelStyle}
+          >
+            <div style={formHeaderStyle}>
+              <div>
+                <h3 style={formTitleStyle}>
+                  Project Support Request
+                </h3>
+                <p style={formHintStyle}>
+                  Link a resource or logistics need directly to this project.
+                </p>
+              </div>
+
+              <Button onClick={() => setSupportProjectId(null)}>
+                Close
+              </Button>
+            </div>
+
+            <input
+              style={fieldStyle}
+              value={supportForm.title}
+              onChange={(event) =>
+                setSupportForm({
+                  ...supportForm,
+                  title: event.target.value
+                })
+              }
+              placeholder="Support request title"
+              required
+            />
+
+            <textarea
+              style={textAreaStyle}
+              value={supportForm.description}
+              onChange={(event) =>
+                setSupportForm({
+                  ...supportForm,
+                  description: event.target.value
+                })
+              }
+              placeholder="Describe the project support need"
+              required
+            />
+
+            <div style={fieldGridStyle}>
+              <input
+                style={fieldStyle}
+                value={supportForm.resourceType}
+                onChange={(event) =>
+                  setSupportForm({
+                    ...supportForm,
+                    resourceType: event.target.value
+                  })
+                }
+                placeholder="Resource type"
+                required
+              />
+
+              <input
+                style={fieldStyle}
+                type="number"
+                min={1}
+                value={supportForm.amountRequested}
+                onChange={(event) =>
+                  setSupportForm({
+                    ...supportForm,
+                    amountRequested: Number(
+                      event.target.value
+                    )
+                  })
+                }
+                required
+              />
+
+              <select
+                style={fieldStyle}
+                value={supportForm.supportType}
+                onChange={(event) =>
+                  setSupportForm({
+                    ...supportForm,
+                    supportType: event.target.value
+                  })
+                }
+              >
+                <option value="peer">Peer</option>
+                <option value="commons">Commons</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
+
+            <div style={formActionsStyle}>
+              <Button type="submit" variant="primary">
+                Submit Project Support Request
+              </Button>
+            </div>
+          </form>
+        )}
 
         {expanded && (
 
@@ -322,12 +501,12 @@ function CoordinationHubPage() {
                 marginBottom: "0.75rem"
               }}
             >
-              Petition Support
+              Project Petitions
             </h3>
 
             {project.petitions.length === 0 && (
               <p>
-                No petition support yet.
+                No project petitions yet.
               </p>
             )}
 
@@ -341,7 +520,10 @@ function CoordinationHubPage() {
                       "1px solid rgba(255,255,255,0.03)"
                   }}
                 >
-                  {petition.signer}
+                  <strong>{petition.title}</strong>
+                  <div>
+                    {petition.supports?.length ?? 0} supporters
+                  </div>
                 </div>
               )
             )}

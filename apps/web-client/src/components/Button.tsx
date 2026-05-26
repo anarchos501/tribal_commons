@@ -6,12 +6,14 @@ type ButtonProps = {
   children: ReactNode;
   variant?: "default" | "primary" | "muted";
   onClick?: () => void;
+  type?: "button" | "submit" | "reset";
 };
 
 function Button({
   children,
   variant = "default",
-  onClick
+  onClick,
+  type = "button"
 }: ButtonProps) {
 
   const [hovered, setHovered] =
@@ -72,6 +74,7 @@ function Button({
 
   return (
     <button
+      type={type}
       onClick={onClick}
       onMouseEnter={() =>
         setHovered(true)

@@ -9,7 +9,12 @@ export const getProjectsData = async () => {
       }
     },
     include: {
-      petitions: true,
+      petitions: {
+        include: {
+          supports: true,
+          proposerCharacter: true
+        }
+      },
       contributions: true
     },
     orderBy: {

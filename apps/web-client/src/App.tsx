@@ -63,10 +63,18 @@ function App() {
         return <ActivityFeedPage />;
 
       case "Tribes":
-        return <TribesPage />;
+        return (
+          <TribesPage
+            currentCharacter={currentCharacter}
+          />
+        );
 
       case "Coordination Hub":
-        return <CoordinationHubPage />;
+        return (
+          <CoordinationHubPage
+            currentCharacter={currentCharacter}
+          />
+        );
 
       default:
         return (
