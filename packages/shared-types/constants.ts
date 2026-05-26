@@ -1,7 +1,7 @@
 export const coordinationTypes = [
   "project",
   "petition",
-  "aid",
+  "support",
   "commons"
 ] as const;
 
@@ -9,9 +9,9 @@ export type CoordinationType =
   typeof coordinationTypes[number];
 
 export const activityTypes = [
-  "aid",
+  "support",
   "petition",
-  "donation",
+  "contribution",
   "commons",
   "project"
 ] as const;

@@ -33,6 +33,6 @@ export const getDashboardData = async (
     player: playerName,
     memberships,
     myProjects: projects,
-    openAidRequests: supportRequests
+    openSupportRequests: supportRequests
   };
 };

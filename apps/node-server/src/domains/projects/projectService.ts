@@ -5,7 +5,7 @@ export const getProjectsData = async () => {
   return prisma.project.findMany({
     include: {
       petitions: true,
-      donations: true
+      contributions: true
     },
     orderBy: {
       createdAt: "desc"

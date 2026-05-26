@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { Notification } from "../../../packages/shared-types/notification";
+import type { Notification } from "../../../../packages/shared-types/notification";
 
 let notifications: Notification[] = [
   {
     id: 1,
     playerName: "Anarchos",
-    type: "aid_request",
-    message: "A new aid request was opened in Outer Rim Cooperative.",
+    type: "support_request",
+    message: "A new support request was opened in Outer Rim Cooperative.",
     read: false,
     createdAt: new Date().toISOString()
   },

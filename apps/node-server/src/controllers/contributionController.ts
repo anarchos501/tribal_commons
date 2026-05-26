@@ -1,20 +1,20 @@
 import { Request, Response } from "express";
 
 import {
-  getDonationsData,
-  createDonationData
-} from "../domains/donations/donationService";
+  getContributionsData,
+  createContributionData
+} from "../domains/contributions/contributionService";
 
-export const getDonations = async (
+export const getContributions = async (
   req: Request,
   res: Response
 ) => {
-  const donations = await getDonationsData();
+  const contributions = await getContributionsData();
 
-  res.json(donations);
+  res.json(contributions);
 };
 
-export const createDonation = async (
+export const createContribution = async (
   req: Request,
   res: Response
 ) => {
@@ -31,20 +31,20 @@ export const createDonation = async (
       });
     }
 
-    const donation = await createDonationData(
+    const contribution = await createContributionData(
       req.body.projectId,
       req.body.playerName,
       req.body.resourceType,
       req.body.amount
     );
 
-    res.status(201).json(donation);
+    res.status(201).json(contribution);
 
       } catch (error) {
 
     res.status(400).json({
       error:
-        "Unable to create donation. Verify projectId exists."
+        "Unable to create contribution. Verify projectId exists."
     });
   }
 };

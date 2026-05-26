@@ -1,4 +1,4 @@
-export interface AidRequest {
+export interface SupportRequest {
   id: number;
   tribeId: number;
   requesterName: string;

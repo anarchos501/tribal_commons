@@ -1,20 +1,20 @@
 import { Request, Response } from "express";
 
 import {
-  getAidRequestsData,
-  createAidRequestData
-} from "../domains/aid/aidService";
+  getSupportRequestsData,
+  createSupportRequestData
+} from "../domains/support/supportService";
 
-export const getAidRequests = async (
+export const getSupportRequests = async (
   req: Request,
   res: Response
 ) => {
-  const aidRequests = await getAidRequestsData();
+  const supportRequests = await getSupportRequestsData();
 
-  res.json(aidRequests);
+  res.json(supportRequests);
 };
 
-export const createAidRequest = async (
+export const createSupportRequest = async (
   req: Request,
   res: Response
 ) => {
@@ -29,11 +29,11 @@ export const createAidRequest = async (
       !req.body.supportType
     ) {
       return res.status(400).json({
-        error: "Missing required aid request fields"
+        error: "Missing required support request fields"
       });
     }
 
-    const aidRequest = await createAidRequestData(
+    const supportRequest = await createSupportRequestData(
       req.body.tribeId,
       req.body.requesterName,
       req.body.title,
@@ -43,11 +43,11 @@ export const createAidRequest = async (
       req.body.supportType
     );
 
-    res.status(201).json(aidRequest);
+    res.status(201).json(supportRequest);
   } catch (error) {
     res.status(400).json({
       error:
-        "Unable to create aid request. Verify tribeId exists."
+        "Unable to create support request. Verify tribeId exists."
     });
   }
 };

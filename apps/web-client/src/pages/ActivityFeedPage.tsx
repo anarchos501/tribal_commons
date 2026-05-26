@@ -22,7 +22,7 @@ const filters = [
   "project",
   "support",
   "petition",
-  "donation",
+  "contribution",
   "governance",
   "federation"
 ];

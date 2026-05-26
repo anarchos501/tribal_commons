@@ -128,21 +128,21 @@ function DashboardPage() {
           </div>
         </div>
 
-        {dashboard.openAidRequests.map((aid: any) => (
+        {dashboard.openSupportRequests.map((support: any) => (
           <div
-            key={aid.id}
+            key={support.id}
             style={{
               padding: "0.75rem 0",
               borderTop: "1px solid rgba(255,255,255,0.04)"
             }}
           >
             <h3 style={{ margin: 0, marginBottom: "0.5rem" }}>
-              {aid.title}
+              {support.title}
             </h3>
 
             <MetadataRow
               label="Status"
-              value={formatStatus(aid.status)}
+              value={formatStatus(support.status)}
               color={theme.colors.primaryActionMuted}
             />
           </div>

@@ -24,7 +24,7 @@ export const getCoordinationHubData =
 
     {
       id: 3,
-      type: "aid",
+      type: "support",
       title: "Recovery After Station Raid",
       description:
         "Aid coordination and recovery logistics ongoing."

@@ -10,9 +10,9 @@ type Petition = {
   signer: string;
 };
 
-type Donation = {
+type Contribution = {
   id: number;
-  donorName: string;
+  contributorName: string;
   resourceType: string;
   amount: number;
 };
@@ -31,7 +31,7 @@ type Project = {
   archivedAt?: string;
 
   petitions: Petition[];
-  donations: Donation[];
+  contributions: Contribution[];
 };
 
 const statuses = [
@@ -206,9 +206,9 @@ function CoordinationHubPage() {
           />
 
           <MetadataRow
-            label="Donations"
+            label="Contributions"
             value={String(
-              project.donations.length
+              project.contributions.length
             )}
             color={
               theme.colors.primaryActionMuted
@@ -373,16 +373,16 @@ function CoordinationHubPage() {
               Contributions
             </h3>
 
-            {project.donations.length === 0 && (
+            {project.contributions.length === 0 && (
               <p>
-                No donations yet.
+                No contributions yet.
               </p>
             )}
 
-            {project.donations.map(
-              (donation) => (
+            {project.contributions.map(
+              (contribution) => (
                 <div
-                  key={donation.id}
+                  key={contribution.id}
                   style={{
                     padding: "0.4rem 0",
                     borderBottom:
@@ -390,14 +390,14 @@ function CoordinationHubPage() {
                   }}
                 >
                   <strong>
-                    {donation.donorName}
+                    {contribution.contributorName}
                   </strong>
 
                   {" — "}
 
-                  {donation.amount}
+                  {contribution.amount}
                   {" "}
-                  {donation.resourceType}
+                  {contribution.resourceType}
                 </div>
               )
             )}

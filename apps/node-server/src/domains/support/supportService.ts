@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { createActivityEventData } from "../../services/activityFeedService";
 
-export const getAidRequestsData = async () => {
+export const getSupportRequestsData = async () => {
   return prisma.aidRequest.findMany({
     include: {
       tribe: true
@@ -12,7 +12,7 @@ export const getAidRequestsData = async () => {
   });
 };
 
-export const createAidRequestData = async (
+export const createSupportRequestData = async (
   tribeId: number,
   requesterName: string,
   title: string,
