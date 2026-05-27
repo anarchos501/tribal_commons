@@ -69,6 +69,7 @@ model SupportRequest {
   resourceType         String
   amountRequested      Int
   supportType          String
+  requestedFromType    String            @default("individuals")
   status               String            @default("open")
   createdAt            DateTime          @default(now())
 
@@ -81,7 +82,27 @@ model SupportRequest {
   projectId            Int?
   project              Project?          @relation(fields: [projectId], references: [id])
 
+  commonsPoolId        Int?
+  commonsPool          CommonsPool?      @relation(fields: [commonsPoolId], references: [id])
+
   contributions        Contribution[]
+  supports             SupportRequestSupport[]
+}
+
+model SupportRequestSupport {
+  id                   Int               @id @default(autoincrement())
+  supporterName        String
+  value                Int               @default(1)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  supportRequestId     Int
+  supportRequest       SupportRequest    @relation(fields: [supportRequestId], references: [id])
+
+  supporterCharacterId Int?
+  supporterCharacter   CharacterProfile? @relation(fields: [supporterCharacterId], references: [id])
+
+  @@unique([supportRequestId, supporterName])
 }
 
 model Petition {
@@ -247,6 +268,7 @@ model CommonsPool {
   tribe         Tribe          @relation(fields: [tribeId], references: [id])
 
   contributions Contribution[]
+  supportRequests SupportRequest[]
 }
 
 model Contribution {
@@ -387,6 +409,7 @@ model CharacterProfile {
 
   memberships             Membership[]
   supportRequests         SupportRequest[]
+  supportRequestSupports  SupportRequestSupport[]
   contributions           Contribution[]
   petitionsProposed       Petition[]              @relation("PetitionsProposed")
   petitionSponsors        PetitionSponsor[]

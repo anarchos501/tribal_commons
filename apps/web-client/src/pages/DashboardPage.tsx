@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type {
   CharacterProfile,
+  CommonsPool,
   Membership,
   Project,
   SupportRequest
@@ -57,6 +58,9 @@ function DashboardPage({
 }: DashboardPageProps) {
   const [dashboard, setDashboard] =
     useState<DashboardData | null>(null);
+  const [commonsPools, setCommonsPools] = useState<
+    CommonsPool[]
+  >([]);
   const [supportFormOpen, setSupportFormOpen] =
     useState(false);
   const [supportForm, setSupportForm] = useState({
@@ -65,7 +69,9 @@ function DashboardPage({
     resourceType: "",
     amountRequested: 1,
     supportType: "peer",
-    tribeId: ""
+    tribeId: "",
+    requestedFromType: "individuals",
+    commonsPoolId: ""
   });
 
   const loadDashboard = useCallback(() => {
@@ -82,6 +88,12 @@ function DashboardPage({
     loadDashboard();
   }, [loadDashboard]);
 
+  useEffect(() => {
+    fetch(apiPath("/commons"))
+      .then((response) => response.json())
+      .then((data) => setCommonsPools(data));
+  }, []);
+
   const submitSupportRequest = (
     event: FormEvent<HTMLFormElement>
   ) => {
@@ -97,6 +109,14 @@ function DashboardPage({
         tribeId: supportForm.tribeId
           ? Number(supportForm.tribeId)
           : null,
+        commonsPoolId: supportForm.commonsPoolId
+          ? Number(supportForm.commonsPoolId)
+          : null,
+        requestedFromType: supportForm.requestedFromType,
+        supportType:
+          supportForm.requestedFromType === "individuals"
+            ? "peer"
+            : "commons",
         requesterName:
           currentCharacter?.characterName ??
           dashboard?.character ??
@@ -113,11 +133,53 @@ function DashboardPage({
         resourceType: "",
         amountRequested: 1,
         supportType: "peer",
-        tribeId: ""
+        tribeId: "",
+        requestedFromType: "individuals",
+        commonsPoolId: ""
       });
       setSupportFormOpen(false);
       loadDashboard();
     });
+  };
+
+  const supportApproval = async (
+    supportRequestId: number
+  ) => {
+    await fetch(
+      apiPath(
+        `/support/requests/${supportRequestId}/support`
+      ),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          supporterName:
+            currentCharacter?.characterName ??
+            dashboard?.character ??
+            "Unscoped Character",
+          supporterCharacterId: currentCharacter?.id
+        })
+      }
+    );
+
+    loadDashboard();
+  };
+
+  const formatSource = (support: SupportRequest) => {
+    if (support.requestedFromType === "individuals") {
+      return "Individuals";
+    }
+
+    if (
+      support.requestedFromType ===
+      "tribal_commons_pool"
+    ) {
+      return "Tribal Commons Pool";
+    }
+
+    return "Project Resource Pool";
   };
 
   if (!dashboard) {
@@ -319,17 +381,21 @@ function DashboardPage({
 
               <select
                 style={fieldStyle}
-                value={supportForm.supportType}
+                value={supportForm.requestedFromType}
                 onChange={(event) =>
                   setSupportForm({
                     ...supportForm,
-                    supportType: event.target.value
+                    requestedFromType: event.target.value,
+                    commonsPoolId: ""
                   })
                 }
               >
-                <option value="peer">Peer</option>
-                <option value="commons">Commons</option>
-                <option value="both">Both</option>
+                <option value="individuals">
+                  Individuals
+                </option>
+                <option value="tribal_commons_pool">
+                  Tribal Commons Pool
+                </option>
               </select>
 
               <select
@@ -340,6 +406,10 @@ function DashboardPage({
                     ...supportForm,
                     tribeId: event.target.value
                   })
+                }
+                required={
+                  supportForm.requestedFromType ===
+                  "tribal_commons_pool"
                 }
               >
                 <option value="">No tribe context</option>
@@ -353,6 +423,41 @@ function DashboardPage({
                   </option>
                 ))}
               </select>
+
+              {supportForm.requestedFromType ===
+                "tribal_commons_pool" && (
+                <select
+                  style={fieldStyle}
+                  value={supportForm.commonsPoolId}
+                  onChange={(event) =>
+                    setSupportForm({
+                      ...supportForm,
+                      commonsPoolId: event.target.value
+                    })
+                  }
+                  required
+                >
+                  <option value="">
+                    Select commons pool
+                  </option>
+
+                  {commonsPools
+                    .filter(
+                      (pool) =>
+                        !supportForm.tribeId ||
+                        pool.tribeId ===
+                          Number(supportForm.tribeId)
+                    )
+                    .map((pool) => (
+                      <option
+                        key={pool.id}
+                        value={pool.id}
+                      >
+                        {pool.name}
+                      </option>
+                    ))}
+                </select>
+              )}
             </div>
 
             <div style={formActionsStyle}>
@@ -380,6 +485,56 @@ function DashboardPage({
               value={formatStatus(support.status)}
               color={theme.colors.primaryActionMuted}
             />
+
+            <MetadataRow
+              label="Requested From"
+              value={formatSource(support)}
+              color={theme.colors.textMuted}
+            />
+
+            {support.fulfillment && (
+              <>
+                <MetadataRow
+                  label="Contributed"
+                  value={`${support.fulfillment.contributedAmount} / ${support.fulfillment.amountRequested} ${support.resourceType}`}
+                  color={theme.colors.textMuted}
+                />
+
+                <MetadataRow
+                  label="Remaining"
+                  value={`${support.fulfillment.remainingAmount} ${support.resourceType}`}
+                  color={theme.colors.textMuted}
+                />
+              </>
+            )}
+
+            {support.approvalRequired && support.readiness && (
+              <>
+                <MetadataRow
+                  label="Approval"
+                  value={`${support.readiness.currentSupportCount} / ${support.readiness.requiredSignatureCount}`}
+                  color={theme.colors.primaryActionMuted}
+                />
+
+                <MetadataRow
+                  label="Readiness"
+                  value={
+                    support.readiness.thresholdMet
+                      ? "Ready"
+                      : `${support.readiness.readinessPercentage}% ready`
+                  }
+                  color={theme.colors.textMuted}
+                />
+
+                <Button
+                  onClick={() =>
+                    supportApproval(support.id)
+                  }
+                >
+                  Support Approval
+                </Button>
+              </>
+            )}
           </div>
         ))}
       </Card>

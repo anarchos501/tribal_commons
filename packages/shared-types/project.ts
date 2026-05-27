@@ -1,3 +1,5 @@
+import type { SupportRequest } from "./supportRequest";
+
 export interface Project {
   id: number;
   tribeId: number;
@@ -14,6 +16,7 @@ export interface Project {
   completedAt?: string | null;
   failedAt?: string | null;
   archivedAt?: string | null;
+  supportRequests?: SupportRequest[];
 }
 
 export interface ProjectMembership {

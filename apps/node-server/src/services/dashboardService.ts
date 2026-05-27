@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { addSupportRequestReadiness } from "../domains/support/supportService";
 
 export const getDashboardData = async (
   characterName?: string,
@@ -112,11 +113,30 @@ export const getDashboardData = async (
               }
             ]
       },
+      include: {
+        tribe: true,
+        requesterCharacter: true,
+        project: true,
+        commonsPool: true,
+        contributions: true,
+        supports: {
+          include: {
+            supporterCharacter: true
+          },
+          orderBy: {
+            createdAt: "desc"
+          }
+        }
+      },
       orderBy: {
         createdAt: "desc"
       },
       take: 5
     });
+
+  const openSupportRequests = await Promise.all(
+    supportRequests.map(addSupportRequestReadiness)
+  );
 
   return {
     character:
@@ -126,6 +146,6 @@ export const getDashboardData = async (
     characterProfile,
     memberships,
     myProjects: projects,
-    openSupportRequests: supportRequests
+    openSupportRequests
   };
 };

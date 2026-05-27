@@ -31,6 +31,12 @@ export const defaultProjectGovernanceTopics = [
     title: "Project Action Approval Threshold",
     description:
       "How much project member support is needed before an internal project action is accepted."
+  },
+  {
+    key: "project_support_request_approval_threshold",
+    title: "Project Support Request Approval Threshold",
+    description:
+      "How much project member support is needed before a project resource pool request is considered actionable."
   }
 ] as const;
 

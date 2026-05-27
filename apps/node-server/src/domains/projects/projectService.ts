@@ -5,6 +5,7 @@ import {
 } from "../petitions/petitionReadiness";
 import { withSponsorshipPayload } from "../petitions/petitionService";
 import { seedDefaultGovernanceTopicsForProject } from "../policies/policyService";
+import { addSupportRequestReadiness } from "../support/supportService";
 
 export const getProjectsData = async () => {
   const projects = await prisma.project.findMany({
@@ -43,6 +44,26 @@ export const getProjectsData = async () => {
         }
       },
       contributions: true,
+      supportRequests: {
+        include: {
+          tribe: true,
+          requesterCharacter: true,
+          project: true,
+          commonsPool: true,
+          contributions: true,
+          supports: {
+            include: {
+              supporterCharacter: true
+            },
+            orderBy: {
+              createdAt: "desc"
+            }
+          }
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
+      },
       memberships: {
         where: {
           removedAt: null
@@ -87,6 +108,11 @@ export const getProjectsData = async () => {
             project.petitions
           )
         ).map(withSponsorshipPayload)
+      ),
+      supportRequests: await Promise.all(
+        project.supportRequests.map(
+          addSupportRequestReadiness
+        )
       )
     }))
   );

@@ -4,7 +4,8 @@ import type {
   CharacterProfile,
   Contribution,
   Petition,
-  Project as SharedProject
+  Project as SharedProject,
+  SupportRequest
 } from "@tribal-commons/shared-types";
 import { theme } from "../styles/theme";
 import Card from "../components/Card";
@@ -26,6 +27,7 @@ import {
 type Project = SharedProject & {
   petitions: Petition[];
   contributions: Contribution[];
+  supportRequests?: SupportRequest[];
 };
 
 type CoordinationHubPageProps = {
@@ -88,7 +90,8 @@ function CoordinationHubPage({
     description: "",
     resourceType: "",
     amountRequested: 1,
-    supportType: "peer"
+    supportType: "peer",
+    requestedFromType: "individuals"
   });
 
   const loadProjects = useCallback(() => {
@@ -233,6 +236,12 @@ function CoordinationHubPage({
         requesterCharacterId: currentCharacter?.id,
         tribeId: project.tribeId,
         projectId: project.id,
+        requestedFromType: supportForm.requestedFromType,
+        supportType:
+          supportForm.requestedFromType ===
+          "project_resource_pool"
+            ? "commons"
+            : "peer",
         amountRequested: Number(
           supportForm.amountRequested
         )
@@ -244,9 +253,34 @@ function CoordinationHubPage({
         description: "",
         resourceType: "",
         amountRequested: 1,
-        supportType: "peer"
+        supportType: "peer",
+        requestedFromType: "individuals"
       });
     });
+  };
+
+  const supportApproval = async (
+    supportRequestId: number
+  ) => {
+    await fetch(
+      apiPath(
+        `/support/requests/${supportRequestId}/support`
+      ),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          supporterName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          supporterCharacterId: currentCharacter?.id
+        })
+      }
+    );
+
+    loadProjects();
   };
 
   return (
@@ -700,17 +734,20 @@ function CoordinationHubPage({
 
               <select
                 style={fieldStyle}
-                value={supportForm.supportType}
+                value={supportForm.requestedFromType}
                 onChange={(event) =>
                   setSupportForm({
                     ...supportForm,
-                    supportType: event.target.value
+                    requestedFromType: event.target.value
                   })
                 }
               >
-                <option value="peer">Peer</option>
-                <option value="commons">Commons</option>
-                <option value="both">Both</option>
+                <option value="individuals">
+                  Individuals
+                </option>
+                <option value="project_resource_pool">
+                  Project Resource Pool
+                </option>
               </select>
             </div>
 
@@ -795,6 +832,82 @@ function CoordinationHubPage({
                 );
               }
             )}
+
+            <h3
+              style={{
+                marginTop: "1.5rem",
+                marginBottom: "0.75rem"
+              }}
+            >
+              Support Requests
+            </h3>
+
+            {(project.supportRequests ?? []).length === 0 && (
+              <p>No project support requests yet.</p>
+            )}
+
+            {(project.supportRequests ?? []).map((support) => (
+              <div
+                key={support.id}
+                style={{
+                  padding: "0.4rem 0",
+                  borderBottom:
+                    "1px solid rgba(255,255,255,0.03)"
+                }}
+              >
+                <strong>{support.title}</strong>
+
+                <MetadataRow
+                  label="Requested From"
+                  value={
+                    support.requestedFromType ===
+                    "project_resource_pool"
+                      ? "Project Resource Pool"
+                      : "Individuals"
+                  }
+                  color={theme.colors.textMuted}
+                />
+
+                {support.fulfillment && (
+                  <MetadataRow
+                    label="Fulfillment"
+                    value={`${support.fulfillment.contributedAmount} / ${support.fulfillment.amountRequested} ${support.resourceType}`}
+                    color={theme.colors.textMuted}
+                  />
+                )}
+
+                {support.approvalRequired &&
+                  support.readiness && (
+                  <>
+                    <MetadataRow
+                      label="Approval"
+                      value={`${support.readiness.currentSupportCount} / ${support.readiness.requiredSignatureCount}`}
+                      color={
+                        theme.colors.primaryActionMuted
+                      }
+                    />
+
+                    <MetadataRow
+                      label="Readiness"
+                      value={
+                        support.readiness.thresholdMet
+                          ? "Ready"
+                          : `${support.readiness.readinessPercentage}% ready`
+                      }
+                      color={theme.colors.textMuted}
+                    />
+
+                    <Button
+                      onClick={() =>
+                        supportApproval(support.id)
+                      }
+                    >
+                      Support Approval
+                    </Button>
+                  </>
+                )}
+              </div>
+            ))}
 
             <h3
               style={{
