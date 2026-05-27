@@ -34,6 +34,15 @@ export const defaultProjectGovernanceTopics = [
   }
 ] as const;
 
+export const defaultPetitionGovernanceTopics = [
+  {
+    key: "petition_sponsor_approval_threshold",
+    title: "Sponsor Approval Threshold",
+    description:
+      "How much current sponsor support is needed before a public petition sponsorship request is accepted or declined."
+  }
+] as const;
+
 export type GovernanceTemperatureBand =
   | "restrictive"
   | "neutral"

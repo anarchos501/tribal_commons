@@ -14,7 +14,8 @@ export interface GovernanceTopic {
   id: number;
   tribeId: number;
   projectId?: number | null;
-  scope: "tribe" | "project";
+  petitionId?: number | null;
+  scope: "tribe" | "project" | "petition";
   key: string;
   title: string;
   description: string;
@@ -31,4 +32,13 @@ export interface GovernanceTemperature {
   temperatureLabel: GovernanceTemperatureLabel;
   thresholdBand: GovernanceThresholdBand;
   requiredSignaturePercentage: number;
+}
+
+export interface ThresholdReadiness {
+  eligibleParticipantCount: number;
+  requiredSignaturePercentage: number;
+  requiredSignatureCount: number;
+  currentSupportCount: number;
+  readinessPercentage: number;
+  thresholdMet: boolean;
 }

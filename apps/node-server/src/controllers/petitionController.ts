@@ -3,7 +3,12 @@ import { Request, Response } from "express";
 import {
   getPetitionsData,
   createPetitionData,
-  supportPetitionData
+  supportPetitionData,
+  invitePetitionSponsorData,
+  respondToSponsorInviteData,
+  requestPetitionSponsorshipData,
+  setSponsorRequestPreferenceData,
+  leavePetitionSponsorshipData
 } from "../domains/petitions/petitionService";
 
 export const getPetitions = async (
@@ -25,10 +30,16 @@ export const getPetitions = async (
       ? req.query.status
       : undefined;
 
+  const currentCharacterId =
+    typeof req.query.currentCharacterId === "string"
+      ? Number(req.query.currentCharacterId)
+      : undefined;
+
   const petitions = await getPetitionsData(
     tribeId,
     type,
-    status
+    status,
+    currentCharacterId
   );
 
   res.json(petitions);
@@ -70,6 +81,7 @@ export const createPetition = async (
         : undefined,
       projectId: req.body.projectId ?? null,
       targetTribeId: req.body.targetTribeId ?? null,
+      publishDuration: req.body.publishDuration,
       metadata: req.body.metadata
     });
 
@@ -80,6 +92,136 @@ export const createPetition = async (
         error instanceof Error
           ? error.message
           : "Unable to create petition"
+    });
+  }
+};
+
+export const invitePetitionSponsor = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const petitionId = Number(req.params.petitionId);
+
+    const invite = await invitePetitionSponsorData(
+      petitionId,
+      req.body.inviterName,
+      req.body.inviterCharacterId,
+      req.body.recipientName,
+      req.body.recipientCharacterId
+    );
+
+    res.status(201).json(invite);
+  } catch (error) {
+    res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to invite sponsor"
+    });
+  }
+};
+
+export const respondToSponsorInvite = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const sponsorRequestId = Number(
+      req.params.sponsorRequestId
+    );
+
+    const response = await respondToSponsorInviteData(
+      sponsorRequestId,
+      req.body.responderName,
+      req.body.responderCharacterId,
+      req.body.response
+    );
+
+    res.json(response);
+  } catch (error) {
+    res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to respond to sponsor invite"
+    });
+  }
+};
+
+export const requestPetitionSponsorship = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const petitionId = Number(req.params.petitionId);
+
+    const sponsorRequest =
+      await requestPetitionSponsorshipData(
+        petitionId,
+        req.body.requesterName,
+        req.body.requesterCharacterId
+      );
+
+    res.status(201).json(sponsorRequest);
+  } catch (error) {
+    res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to request sponsorship"
+    });
+  }
+};
+
+export const setSponsorRequestPreference = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const sponsorRequestId = Number(
+      req.params.sponsorRequestId
+    );
+
+    const preference =
+      await setSponsorRequestPreferenceData(
+        sponsorRequestId,
+        req.body.voterName,
+        req.body.voterCharacterId,
+        req.body.value
+      );
+
+    res.json(preference);
+  } catch (error) {
+    res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to set sponsor request preference"
+    });
+  }
+};
+
+export const leavePetitionSponsorship = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const petitionId = Number(req.params.petitionId);
+
+    const result = await leavePetitionSponsorshipData(
+      petitionId,
+      req.body.sponsorName,
+      req.body.sponsorCharacterId
+    );
+
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to leave petition sponsorship"
     });
   }
 };

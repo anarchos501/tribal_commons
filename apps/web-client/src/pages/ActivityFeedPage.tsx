@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import type { Activity } from "@tribal-commons/shared-types";
+import type {
+  Activity,
+  CharacterProfile
+} from "@tribal-commons/shared-types";
 import { theme } from "../styles/theme";
 import Card from "../components/Card";
 import Button from "../components/Button";
@@ -27,7 +30,13 @@ const formatStatus = (status: string) =>
     )
     .join(" ");
 
-function ActivityFeedPage() {
+type ActivityFeedPageProps = {
+  currentCharacter: CharacterProfile | null;
+};
+
+function ActivityFeedPage({
+  currentCharacter
+}: ActivityFeedPageProps) {
   const [activities, setActivities] =
     useState<Activity[]>([]);
 
@@ -35,10 +44,14 @@ function ActivityFeedPage() {
     useState("all");
 
   useEffect(() => {
-    fetch(apiPath("/activity-feed"))
+    const query = currentCharacter
+      ? `?characterProfileId=${currentCharacter.id}`
+      : "";
+
+    fetch(apiPath(`/activity-feed${query}`))
       .then((response) => response.json())
       .then((data) => setActivities(data));
-  }, []);
+  }, [currentCharacter]);
 
   const visibleActivities =
     selectedFilter === "all"

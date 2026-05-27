@@ -1,8 +1,30 @@
 import { prisma } from "../lib/prisma";
 import { resolveCharacterIdentity } from "../domains/characters/characterIdentity";
 
-export const getActivityFeedData = async () => {
+export const getActivityFeedData = async (
+  characterProfileId?: number
+) => {
   return prisma.activityEvent.findMany({
+    where: characterProfileId
+      ? {
+          OR: [
+            {
+              visibleToCharacterIds: {
+                isEmpty: true
+              }
+            },
+            {
+              visibleToCharacterIds: {
+                has: characterProfileId
+              }
+            }
+          ]
+        }
+      : {
+          visibleToCharacterIds: {
+            isEmpty: true
+          }
+        },
     orderBy: {
       createdAt: "desc"
     },
@@ -18,7 +40,8 @@ export const createActivityEventData = async (
   entityId?: number,
   tribeId?: number,
   actorName?: string,
-  actorCharacterId?: number
+  actorCharacterId?: number,
+  visibleToCharacterIds: number[] = []
 ) => {
   const actorIdentity = await resolveCharacterIdentity(
     actorCharacterId,
@@ -34,7 +57,8 @@ export const createActivityEventData = async (
       entityId,
       tribeId,
       actorName: actorIdentity.characterName,
-      actorCharacterId: actorIdentity.characterProfileId
+      actorCharacterId: actorIdentity.characterProfileId,
+      visibleToCharacterIds
     }
   });
 };

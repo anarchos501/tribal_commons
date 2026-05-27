@@ -19,6 +19,7 @@ import standingsRoutes from "./routes/standings";
 import policyRoutes from "./routes/policies";
 import federationRoutes from "./routes/federation";
 import accountRoutes from "./routes/accounts";
+import { startDraftPetitionPublisher } from "./jobs/publishDraftPetitions";
 
 dotenv.config();
 
@@ -53,3 +54,5 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+startDraftPetitionPublisher();

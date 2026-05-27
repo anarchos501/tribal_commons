@@ -5,7 +5,14 @@ export const getActivityFeed = async (
   req: Request,
   res: Response
 ) => {
-  const activities = await getActivityFeedData();
+  const characterProfileId =
+    typeof req.query.characterProfileId === "string"
+      ? Number(req.query.characterProfileId)
+      : undefined;
+
+  const activities = await getActivityFeedData(
+    characterProfileId
+  );
 
   res.json(activities);
 };

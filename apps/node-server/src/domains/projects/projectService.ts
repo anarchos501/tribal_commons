@@ -1,9 +1,13 @@
 import { prisma } from "../../lib/prisma";
 import { createActivityEventData } from "../../services/activityFeedService";
+import {
+  addProjectPetitionReadiness
+} from "../petitions/petitionReadiness";
+import { withSponsorshipPayload } from "../petitions/petitionService";
 import { seedDefaultGovernanceTopicsForProject } from "../policies/policyService";
 
 export const getProjectsData = async () => {
-  return prisma.project.findMany({
+  const projects = await prisma.project.findMany({
     where: {
       tribe: {
         deletedAt: null
@@ -12,8 +16,30 @@ export const getProjectsData = async () => {
     include: {
       petitions: {
         include: {
-          supports: true,
-          proposerCharacter: true
+          supports: {
+            include: {
+              supporterCharacter: true
+            }
+          },
+          proposerCharacter: true,
+          sponsors: {
+            where: {
+              removedAt: null
+            },
+            include: {
+              sponsorCharacter: true
+            }
+          },
+          sponsorRequests: {
+            include: {
+              requesterCharacter: true,
+              recipientCharacter: true,
+              preferences: true
+            },
+            orderBy: {
+              createdAt: "desc"
+            }
+          }
         }
       },
       contributions: true,
@@ -51,6 +77,19 @@ export const getProjectsData = async () => {
       createdAt: "desc"
     }
   });
+
+  return Promise.all(
+    projects.map(async (project) => ({
+      ...project,
+      petitions: await Promise.all(
+        (
+          await addProjectPetitionReadiness(
+            project.petitions
+          )
+        ).map(withSponsorshipPayload)
+      )
+    }))
+  );
 };
 
 export const createProjectData = async (

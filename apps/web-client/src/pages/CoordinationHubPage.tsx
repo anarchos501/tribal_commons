@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type {
   CharacterProfile,
@@ -56,12 +56,28 @@ const formatStatus = (status: string) => {
     .join(" ");
 };
 
+const formatPetitionReadiness = (petition: Petition) => {
+  if (!petition.readiness) {
+    return null;
+  }
+
+  return {
+    supportValue: `${petition.readiness.currentSupportCount} / ${petition.readiness.requiredSignatureCount}`,
+    thresholdValue: `${petition.readiness.requiredSignaturePercentage}%`,
+    statusValue: petition.readiness.thresholdMet
+      ? "Ready"
+      : `${petition.readiness.readinessPercentage}% ready`
+  };
+};
+
 function CoordinationHubPage({
   currentCharacter
 }: CoordinationHubPageProps) {
 
   const [projects, setProjects] =
     useState<Project[]>([]);
+  const [projectPetitions, setProjectPetitions] =
+    useState<Petition[]>([]);
 
   const [expandedProjects, setExpandedProjects] =
     useState<number[]>([]);
@@ -75,15 +91,93 @@ function CoordinationHubPage({
     supportType: "peer"
   });
 
-  const loadProjects = () => {
+  const loadProjects = useCallback(() => {
     fetch(apiPath("/projects"))
       .then((response) => response.json())
       .then((data) => setProjects(data));
-  };
+
+    const query = currentCharacter
+      ? `?type=project&currentCharacterId=${currentCharacter.id}`
+      : "?type=project";
+
+    fetch(apiPath(`/petitions${query}`))
+      .then((response) => response.json())
+      .then((data) => setProjectPetitions(data));
+  }, [currentCharacter]);
 
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [loadProjects]);
+
+  const requestSponsorship = async (
+    petitionId: number
+  ) => {
+    await fetch(
+      apiPath(`/petitions/${petitionId}/sponsor-requests`),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          requesterName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          requesterCharacterId: currentCharacter?.id
+        })
+      }
+    );
+
+    loadProjects();
+  };
+
+  const respondToInvite = async (
+    sponsorRequestId: number,
+    response: "accepted" | "declined"
+  ) => {
+    await fetch(
+      apiPath(
+        `/petitions/sponsor-requests/${sponsorRequestId}/respond`
+      ),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          responderName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          responderCharacterId: currentCharacter?.id,
+          response
+        })
+      }
+    );
+
+    loadProjects();
+  };
+
+  const leaveSponsorship = async (
+    petitionId: number
+  ) => {
+    await fetch(
+      apiPath(`/petitions/${petitionId}/sponsors/leave`),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          sponsorName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          sponsorCharacterId: currentCharacter?.id
+        })
+      }
+    );
+
+    loadProjects();
+  };
 
   const updateStatus = (
     projectId: number,
@@ -160,6 +254,149 @@ function CoordinationHubPage({
   title="Coordination Hub"
   description="Coordinate projects, logistics, and long-term tribal operations."
 >
+  <Card>
+    <h2 style={{ marginTop: 0 }}>Project Petitions</h2>
+
+    {projectPetitions.length === 0 && (
+      <p>No project petitions visible to the selected character.</p>
+    )}
+
+    {projectPetitions.map((petition) => {
+      const readiness = formatPetitionReadiness(petition);
+      const isCurrentSponsor =
+        petition.sponsors?.some(
+          (sponsor) =>
+            sponsor.sponsorCharacterId ===
+              currentCharacter?.id ||
+            sponsor.sponsorName ===
+              currentCharacter?.characterName
+        ) ?? false;
+      const pendingInvite =
+        petition.sponsorRequests?.find(
+          (request) =>
+            request.requestType === "invite" &&
+            request.status === "pending" &&
+            (request.recipientCharacterId ===
+              currentCharacter?.id ||
+              request.recipientName ===
+                currentCharacter?.characterName)
+        );
+      const pendingSponsorRequests =
+        petition.sponsorRequests?.filter(
+          (request) =>
+            request.requestType === "request" &&
+            request.status === "pending"
+        ) ?? [];
+
+      return (
+        <div
+          key={petition.id}
+          style={{
+            padding: "0.75rem 0",
+            borderTop: "1px solid rgba(255,255,255,0.04)"
+          }}
+        >
+          <h3 style={{ margin: 0 }}>{petition.title}</h3>
+
+          <MetadataRow
+            label="Status"
+            value={formatStatus(petition.status)}
+            color={theme.colors.primaryActionMuted}
+          />
+
+          <MetadataRow
+            label="Sponsors"
+            value={
+              petition.sponsors?.length
+                ? petition.sponsors
+                    .map((sponsor) => sponsor.sponsorName)
+                    .join(", ")
+                : "No active sponsors"
+            }
+            color={theme.colors.textMuted}
+          />
+
+          {readiness && (
+            <MetadataRow
+              label="Readiness"
+              value={readiness.statusValue}
+              color={theme.colors.textMuted}
+            />
+          )}
+
+          {pendingSponsorRequests.map((request) => (
+            <MetadataRow
+              key={request.id}
+              label="Sponsor Request"
+              value={`${request.requesterName}: ${
+                request.readiness
+                  ? `${request.readiness.approval.currentSupportCount}/${request.readiness.approval.requiredSignatureCount} approve, ${request.readiness.decline.currentSupportCount}/${request.readiness.decline.requiredSignatureCount} decline`
+                  : "pending"
+              }`}
+              color={theme.colors.textMuted}
+            />
+          ))}
+
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              flexWrap: "wrap",
+              marginTop: "0.5rem"
+            }}
+          >
+            {petition.status === "open" && !isCurrentSponsor && (
+              <Button
+                onClick={() =>
+                  requestSponsorship(petition.id)
+                }
+              >
+                Request Sponsorship
+              </Button>
+            )}
+
+            {pendingInvite && (
+              <>
+                <Button
+                  onClick={() =>
+                    respondToInvite(
+                      pendingInvite.id,
+                      "accepted"
+                    )
+                  }
+                >
+                  Accept Invite
+                </Button>
+
+                <Button
+                  onClick={() =>
+                    respondToInvite(
+                      pendingInvite.id,
+                      "declined"
+                    )
+                  }
+                >
+                  Decline Invite
+                </Button>
+              </>
+            )}
+
+            {isCurrentSponsor &&
+              ["draft", "open"].includes(petition.status) && (
+                <Button
+                  onClick={() =>
+                    leaveSponsorship(petition.id)
+                  }
+                >
+                  Leave Sponsorship
+                </Button>
+              )}
+          </div>
+        </div>
+      );
+    })}
+  </Card>
+
   {projects.map((project) => {
 
     const expanded =
@@ -511,7 +748,11 @@ function CoordinationHubPage({
             )}
 
             {project.petitions.map(
-              (petition) => (
+              (petition) => {
+                const readiness =
+                  formatPetitionReadiness(petition);
+
+                return (
                 <div
                   key={petition.id}
                   style={{
@@ -521,11 +762,38 @@ function CoordinationHubPage({
                   }}
                 >
                   <strong>{petition.title}</strong>
-                  <div>
-                    {petition.supports?.length ?? 0} supporters
-                  </div>
+
+                  <MetadataRow
+                    label="Signatures"
+                    value={
+                      readiness?.supportValue ??
+                      String(petition.supports?.length ?? 0)
+                    }
+                    color={theme.colors.textMuted}
+                  />
+
+                  {readiness && (
+                    <>
+                      <MetadataRow
+                        label="Threshold"
+                        value={readiness.thresholdValue}
+                        color={theme.colors.textMuted}
+                      />
+
+                      <MetadataRow
+                        label="Readiness"
+                        value={readiness.statusValue}
+                        color={
+                          petition.readiness?.thresholdMet
+                            ? theme.colors.primaryActionMuted
+                            : theme.colors.textMuted
+                        }
+                      />
+                    </>
+                  )}
                 </div>
-              )
+                );
+              }
             )}
 
             <h3

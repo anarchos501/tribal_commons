@@ -2,6 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { resolveCharacterIdentity } from "../characters/characterIdentity";
 import {
   defaultGovernanceTopics,
+  defaultPetitionGovernanceTopics,
   defaultProjectGovernanceTopics,
   getRequiredSignaturePercentage,
   getTemperatureLabel,
@@ -100,6 +101,59 @@ export const seedDefaultGovernanceTopicsForProject =
     return createdTopics;
   };
 
+export const seedDefaultGovernanceTopicsForPetition =
+  async (petitionId: number) => {
+    const petition = await prisma.petition.findFirst({
+      where: {
+        id: petitionId,
+        type: "project",
+        tribe: {
+          deletedAt: null
+        }
+      }
+    });
+
+    if (!petition) {
+      throw new Error("Project petition not found");
+    }
+
+    const createdTopics = [];
+
+    for (const topic of defaultPetitionGovernanceTopics) {
+      const existing =
+        await prisma.governanceTopic.findFirst({
+          where: {
+            tribeId: petition.tribeId,
+            petitionId: petition.id,
+            scope: "petition",
+            key: topic.key
+          }
+        });
+
+      if (existing) {
+        continue;
+      }
+
+      const created =
+        await prisma.governanceTopic.create({
+          data: {
+            tribeId: petition.tribeId,
+            petitionId: petition.id,
+            scope: "petition",
+            key: topic.key,
+            title: topic.title,
+            description: topic.description,
+            minLabel: "Restrictive",
+            maxLabel: "Open"
+          }
+        });
+
+      createdTopics.push(created);
+    }
+
+    return createdTopics;
+  };
+
 export const backfillDefaultGovernanceTopicsData =
   async () => {
     const tribes = await prisma.tribe.findMany({
@@ -110,6 +164,7 @@ export const backfillDefaultGovernanceTopicsData =
 
     let createdTopicCount = 0;
     let createdProjectTopicCount = 0;
+    let createdPetitionTopicCount = 0;
 
     for (const tribe of tribes) {
       const created =
@@ -137,11 +192,31 @@ export const backfillDefaultGovernanceTopicsData =
       createdProjectTopicCount += created.length;
     }
 
+    const projectPetitions = await prisma.petition.findMany({
+      where: {
+        type: "project",
+        tribe: {
+          deletedAt: null
+        }
+      }
+    });
+
+    for (const petition of projectPetitions) {
+      const created =
+        await seedDefaultGovernanceTopicsForPetition(
+          petition.id
+        );
+
+      createdPetitionTopicCount += created.length;
+    }
+
     return {
       tribeCount: tribes.length,
       projectCount: projects.length,
+      projectPetitionCount: projectPetitions.length,
       createdTopicCount,
-      createdProjectTopicCount
+      createdProjectTopicCount,
+      createdPetitionTopicCount
     };
   };
 
@@ -321,6 +396,51 @@ export const getGovernanceTemperatureData = async (
       getRequiredSignaturePercentage(temperatureScore)
   };
 };
+
+export const getGovernanceTemperatureForTopicKeyData =
+  async (
+    tribeId: number,
+    key: string,
+    scope = "tribe",
+    projectId?: number | null,
+    petitionId?: number | null
+  ) => {
+    if (scope === "project" && projectId) {
+      await seedDefaultGovernanceTopicsForProject(
+        projectId
+      );
+    } else if (scope === "petition" && petitionId) {
+      await seedDefaultGovernanceTopicsForPetition(
+        petitionId
+      );
+    } else {
+      await seedDefaultGovernanceTopicsForTribe(tribeId);
+    }
+
+    const topic = await prisma.governanceTopic.findFirst({
+      where: {
+        tribeId,
+        key,
+        scope,
+        ...(projectId
+          ? {
+              projectId
+            }
+          : {}),
+        ...(petitionId
+          ? {
+              petitionId
+            }
+          : {})
+      }
+    });
+
+    if (!topic) {
+      throw new Error("Governance topic not found");
+    }
+
+    return getGovernanceTemperatureData(topic.id);
+  };
 
 export {
   getRequiredSignaturePercentage,

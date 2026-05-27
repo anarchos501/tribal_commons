@@ -92,6 +92,7 @@ model Petition {
   status               String            @default("open")
   proposerName         String
   metadata             Json?
+  publishAt            DateTime?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
 
@@ -109,12 +110,15 @@ model Petition {
 
   sponsors             PetitionSponsor[]
   supports             PetitionSupport[]
+  sponsorRequests      PetitionSponsorRequest[]
+  governanceTopics     GovernanceTopic[]
 }
 
 model PetitionSponsor {
   id                   Int               @id @default(autoincrement())
   sponsorName          String
   createdAt            DateTime          @default(now())
+  removedAt            DateTime?
 
   petitionId           Int
   petition             Petition          @relation(fields: [petitionId], references: [id])
@@ -123,6 +127,45 @@ model PetitionSponsor {
   sponsorCharacter     CharacterProfile? @relation(fields: [sponsorCharacterId], references: [id])
 
   @@unique([petitionId, sponsorName])
+}
+
+model PetitionSponsorRequest {
+  id                   Int               @id @default(autoincrement())
+  requestType          String
+  status               String            @default("pending")
+  requesterName        String
+  recipientName        String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  petitionId           Int
+  petition             Petition          @relation(fields: [petitionId], references: [id])
+
+  requesterCharacterId Int?
+  requesterCharacter   CharacterProfile? @relation("SponsorRequestsMade", fields: [requesterCharacterId], references: [id])
+
+  recipientCharacterId Int?
+  recipientCharacter   CharacterProfile? @relation("SponsorRequestsReceived", fields: [recipientCharacterId], references: [id])
+
+  preferences          PetitionSponsorRequestPreference[]
+
+  @@unique([petitionId, requestType, requesterName, recipientName])
+}
+
+model PetitionSponsorRequestPreference {
+  id                    Int                    @id @default(autoincrement())
+  value                 Int
+  voterName             String
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  sponsorRequestId      Int
+  sponsorRequest        PetitionSponsorRequest @relation(fields: [sponsorRequestId], references: [id])
+
+  voterCharacterId      Int?
+  voterCharacter        CharacterProfile?      @relation(fields: [voterCharacterId], references: [id])
+
+  @@unique([sponsorRequestId, voterName])
 }
 
 model PetitionSupport {
@@ -252,6 +295,7 @@ model GovernanceTopic {
   id          Int      @id @default(autoincrement())
   tribeId     Int
   projectId   Int?
+  petitionId  Int?
   scope       String   @default("tribe")
   key         String
   title       String
@@ -262,6 +306,7 @@ model GovernanceTopic {
 
   tribe       Tribe    @relation(fields: [tribeId], references: [id])
   project     Project? @relation(fields: [projectId], references: [id])
+  petition    Petition? @relation(fields: [petitionId], references: [id])
 
   preferences GovernancePreference[]
 }
@@ -313,6 +358,8 @@ model ActivityEvent {
   actorCharacterId Int?
   actorCharacter   CharacterProfile? @relation(fields: [actorCharacterId], references: [id])
 
+  visibleToCharacterIds Int[]            @default([])
+
   createdAt        DateTime          @default(now())
 }
 
@@ -343,6 +390,9 @@ model CharacterProfile {
   contributions           Contribution[]
   petitionsProposed       Petition[]              @relation("PetitionsProposed")
   petitionSponsors        PetitionSponsor[]
+  sponsorRequestsMade     PetitionSponsorRequest[] @relation("SponsorRequestsMade")
+  sponsorRequestsReceived PetitionSponsorRequest[] @relation("SponsorRequestsReceived")
+  sponsorRequestPreferences PetitionSponsorRequestPreference[]
   petitionSupports        PetitionSupport[]
   projectMemberships      ProjectMembership[]
   projectActionsProposed  ProjectAction[]         @relation("ProjectActionsProposed")

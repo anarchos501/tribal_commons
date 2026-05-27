@@ -60,7 +60,11 @@ function App() {
         );
 
       case "Activity Feed":
-        return <ActivityFeedPage />;
+        return (
+          <ActivityFeedPage
+            currentCharacter={currentCharacter}
+          />
+        );
 
       case "Tribes":
         return (

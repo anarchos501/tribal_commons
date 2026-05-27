@@ -10,5 +10,6 @@ export interface Activity {
   tribeId?: number | null;
   actorName?: string | null;
   actorCharacterId?: number | null;
+  visibleToCharacterIds?: number[];
   createdAt?: string;
 }

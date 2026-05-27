@@ -39,6 +39,20 @@ type TribesPageProps = {
 const formatStatus = (status: string) =>
   status.charAt(0).toUpperCase() + status.slice(1);
 
+const formatPetitionReadiness = (petition: Petition) => {
+  if (!petition.readiness) {
+    return null;
+  }
+
+  return {
+    supportValue: `${petition.readiness.currentSupportCount} / ${petition.readiness.requiredSignatureCount}`,
+    thresholdValue: `${petition.readiness.requiredSignaturePercentage}%`,
+    statusValue: petition.readiness.thresholdMet
+      ? "Ready"
+      : `${petition.readiness.readinessPercentage}% ready`
+  };
+};
+
 function TribesPage({
   currentCharacter
 }: TribesPageProps) {
@@ -56,8 +70,13 @@ function TribesPage({
   const [petitionForm, setPetitionForm] = useState({
     title: "",
     description: "",
-    targetTribeId: ""
+    targetTribeId: "",
+    publishDuration: "3d"
   });
+  const [activeSponsorInviteId, setActiveSponsorInviteId] =
+    useState<number | null>(null);
+  const [sponsorInviteName, setSponsorInviteName] =
+    useState("");
 
   useEffect(() => {
     fetch(apiPath("/tribes"))
@@ -72,8 +91,12 @@ function TribesPage({
     const federationResponse = await fetch(apiPath(`/federation/${tribeId}`));
     const federation = await federationResponse.json();
 
+    const petitionQuery = currentCharacter
+      ? `/petitions?tribeId=${tribeId}&currentCharacterId=${currentCharacter.id}`
+      : `/petitions?tribeId=${tribeId}`;
+
     const petitionsResponse = await fetch(
-      apiPath(`/petitions?tribeId=${tribeId}&status=open`)
+      apiPath(petitionQuery)
     );
     const petitions = await petitionsResponse.json();
 
@@ -134,7 +157,8 @@ function TribesPage({
     setPetitionForm({
       title: "",
       description: "",
-      targetTribeId: ""
+      targetTribeId: "",
+      publishDuration: "3d"
     });
   };
 
@@ -164,6 +188,10 @@ function TribesPage({
           currentCharacter?.characterName ??
           "Unscoped Character",
         proposerCharacterId: currentCharacter?.id,
+        publishDuration:
+          type === "project"
+            ? petitionForm.publishDuration
+            : undefined,
         metadata:
           type === "federation"
             ? {
@@ -177,7 +205,8 @@ function TribesPage({
       setPetitionForm({
         title: "",
         description: "",
-        targetTribeId: ""
+        targetTribeId: "",
+        publishDuration: "3d"
       });
       await loadTribeDetails(tribeId);
     });
@@ -199,6 +228,132 @@ function TribesPage({
         supporterCharacterId: currentCharacter?.id
       })
     });
+
+    await loadTribeDetails(tribeId);
+  };
+
+  const inviteSponsor = async (
+    tribeId: number,
+    petitionId: number
+  ) => {
+    await fetch(
+      apiPath(`/petitions/${petitionId}/sponsor-invites`),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          inviterName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          inviterCharacterId: currentCharacter?.id,
+          recipientName: sponsorInviteName
+        })
+      }
+    );
+
+    setActiveSponsorInviteId(null);
+    setSponsorInviteName("");
+    await loadTribeDetails(tribeId);
+  };
+
+  const respondToInvite = async (
+    tribeId: number,
+    sponsorRequestId: number,
+    response: "accepted" | "declined"
+  ) => {
+    await fetch(
+      apiPath(
+        `/petitions/sponsor-requests/${sponsorRequestId}/respond`
+      ),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          responderName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          responderCharacterId: currentCharacter?.id,
+          response
+        })
+      }
+    );
+
+    await loadTribeDetails(tribeId);
+  };
+
+  const requestSponsorship = async (
+    tribeId: number,
+    petitionId: number
+  ) => {
+    await fetch(
+      apiPath(`/petitions/${petitionId}/sponsor-requests`),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          requesterName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          requesterCharacterId: currentCharacter?.id
+        })
+      }
+    );
+
+    await loadTribeDetails(tribeId);
+  };
+
+  const setSponsorRequestPreference = async (
+    tribeId: number,
+    sponsorRequestId: number,
+    value: 1 | -1
+  ) => {
+    await fetch(
+      apiPath(
+        `/petitions/sponsor-requests/${sponsorRequestId}/preference`
+      ),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          voterName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          voterCharacterId: currentCharacter?.id,
+          value
+        })
+      }
+    );
+
+    await loadTribeDetails(tribeId);
+  };
+
+  const leaveSponsorship = async (
+    tribeId: number,
+    petitionId: number
+  ) => {
+    await fetch(
+      apiPath(`/petitions/${petitionId}/sponsors/leave`),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          sponsorName:
+            currentCharacter?.characterName ??
+            "Unscoped Character",
+          sponsorCharacterId: currentCharacter?.id
+        })
+      }
+    );
 
     await loadTribeDetails(tribeId);
   };
@@ -339,7 +494,9 @@ function TribesPage({
                         : "Federation Petition"}
                     </h3>
                     <p style={formHintStyle}>
-                      Open a typed petition for members to support before it becomes operational work.
+                      {activePetitionForm.type === "project"
+                        ? "Create a private draft, invite initial sponsors, and publish it automatically after the draft window."
+                        : "Open a typed petition for members to support before it becomes operational work."}
                     </p>
                   </div>
 
@@ -413,9 +570,29 @@ function TribesPage({
                   </select>
                 )}
 
+                {activePetitionForm.type === "project" && (
+                  <select
+                    style={fieldStyle}
+                    value={petitionForm.publishDuration}
+                    onChange={(event) =>
+                      setPetitionForm({
+                        ...petitionForm,
+                        publishDuration:
+                          event.target.value
+                      })
+                    }
+                  >
+                    <option value="24h">Publish in 24 hours</option>
+                    <option value="3d">Publish in 3 days</option>
+                    <option value="7d">Publish in 7 days</option>
+                  </select>
+                )}
+
                 <div style={formActionsStyle}>
                   <Button type="submit" variant="primary">
-                    Open Petition
+                    {activePetitionForm.type === "project"
+                      ? "Create Draft"
+                      : "Open Petition"}
                   </Button>
                 </div>
               </form>
@@ -553,66 +730,331 @@ function TribesPage({
                     marginBottom: "0.75rem"
                   }}
                 >
-                  Open Petitions
+                  Petitions
                 </h3>
 
                 {petitions.length === 0 && (
-                  <p>No open petitions recorded yet.</p>
+                  <p>No petitions visible to the selected character yet.</p>
                 )}
 
-                {petitions.map((petition) => (
-                  <div
-                    key={petition.id}
-                    style={{
-                      padding: "0.75rem 0",
-                      borderBottom:
-                        "1px solid rgba(255,255,255,0.03)"
-                    }}
-                  >
-                    <h4
+                {petitions.map((petition) => {
+                  const readiness =
+                    formatPetitionReadiness(petition);
+                  const isCurrentSponsor =
+                    petition.sponsors?.some(
+                      (sponsor) =>
+                        sponsor.sponsorCharacterId ===
+                          currentCharacter?.id ||
+                        sponsor.sponsorName ===
+                          currentCharacter?.characterName
+                    ) ?? false;
+                  const pendingInvite =
+                    petition.sponsorRequests?.find(
+                      (request) =>
+                        request.requestType === "invite" &&
+                        request.status === "pending" &&
+                        (request.recipientCharacterId ===
+                          currentCharacter?.id ||
+                          request.recipientName ===
+                            currentCharacter?.characterName)
+                    );
+                  const pendingSponsorRequests =
+                    petition.sponsorRequests?.filter(
+                      (request) =>
+                        request.requestType === "request" &&
+                        request.status === "pending"
+                    ) ?? [];
+
+                  return (
+                    <div
+                      key={petition.id}
                       style={{
-                        margin: 0,
-                        marginBottom: "0.4rem"
+                        padding: "0.75rem 0",
+                        borderBottom:
+                          "1px solid rgba(255,255,255,0.03)"
                       }}
                     >
-                      {petition.title}
-                    </h4>
+                      <h4
+                        style={{
+                          margin: 0,
+                          marginBottom: "0.4rem"
+                        }}
+                      >
+                        {petition.title}
+                      </h4>
 
-                    <p
-                      style={{
-                        marginTop: 0,
-                        color: theme.colors.textSecondary
-                      }}
-                    >
-                      {petition.description}
-                    </p>
+                      <p
+                        style={{
+                          marginTop: 0,
+                          color: theme.colors.textSecondary
+                        }}
+                      >
+                        {petition.description}
+                      </p>
 
-                    <MetadataRow
-                      label="Type"
-                      value={formatStatus(petition.type)}
-                      color={theme.colors.primaryActionMuted}
-                    />
+                      <MetadataRow
+                        label="Type"
+                        value={`${formatStatus(
+                          petition.type
+                        )} / ${formatStatus(petition.status)}`}
+                        color={theme.colors.primaryActionMuted}
+                      />
 
-                    <MetadataRow
-                      label="Supporters"
-                      value={String(
-                        petition.supports?.length ?? 0
+                      {petition.publishAt && (
+                        <MetadataRow
+                          label="Publishes"
+                          value={new Date(
+                            petition.publishAt
+                          ).toLocaleString()}
+                          color={theme.colors.textMuted}
+                        />
                       )}
-                      color={theme.colors.textMuted}
-                    />
 
-                    <Button
-                      onClick={() =>
-                        supportPetition(
-                          tribe.id,
-                          petition.id
-                        )
-                      }
-                    >
-                      Support Petition
-                    </Button>
-                  </div>
-                ))}
+                      <MetadataRow
+                        label="Sponsors"
+                        value={
+                          petition.sponsors?.length
+                            ? petition.sponsors
+                                .map(
+                                  (sponsor) =>
+                                    sponsor.sponsorName
+                                )
+                                .join(", ")
+                            : "No active sponsors"
+                        }
+                        color={theme.colors.textMuted}
+                      />
+
+                      <MetadataRow
+                        label="Signatures"
+                        value={
+                          readiness?.supportValue ??
+                          String(petition.supports?.length ?? 0)
+                        }
+                        color={theme.colors.textMuted}
+                      />
+
+                      {readiness && (
+                        <>
+                          <MetadataRow
+                            label="Threshold"
+                            value={readiness.thresholdValue}
+                            color={theme.colors.textMuted}
+                          />
+
+                          <MetadataRow
+                            label="Readiness"
+                            value={readiness.statusValue}
+                            color={
+                              petition.readiness?.thresholdMet
+                                ? theme.colors.primaryActionMuted
+                                : theme.colors.textMuted
+                            }
+                          />
+                        </>
+                      )}
+
+                      {pendingSponsorRequests.map((request) => (
+                        <div
+                          key={request.id}
+                          style={{
+                            marginTop: "0.5rem",
+                            padding: "0.6rem",
+                            border:
+                              "1px solid rgba(255,255,255,0.05)"
+                          }}
+                        >
+                          <MetadataRow
+                            label="Sponsor Request"
+                            value={request.requesterName}
+                            color={theme.colors.textMuted}
+                          />
+
+                          {request.readiness && (
+                            <>
+                              <MetadataRow
+                                label="Approvals"
+                                value={`${request.readiness.approval.currentSupportCount} / ${request.readiness.approval.requiredSignatureCount}`}
+                                color={
+                                  theme.colors.primaryActionMuted
+                                }
+                              />
+
+                              <MetadataRow
+                                label="Declines"
+                                value={`${request.readiness.decline.currentSupportCount} / ${request.readiness.decline.requiredSignatureCount}`}
+                                color={theme.colors.textMuted}
+                              />
+                            </>
+                          )}
+
+                          {isCurrentSponsor && (
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "0.5rem",
+                                flexWrap: "wrap"
+                              }}
+                            >
+                              <Button
+                                onClick={() =>
+                                  setSponsorRequestPreference(
+                                    tribe.id,
+                                    request.id,
+                                    1
+                                  )
+                                }
+                              >
+                                Approve
+                              </Button>
+
+                              <Button
+                                onClick={() =>
+                                  setSponsorRequestPreference(
+                                    tribe.id,
+                                    request.id,
+                                    -1
+                                  )
+                                }
+                              >
+                                Decline
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "0.5rem",
+                          flexWrap: "wrap",
+                          marginTop: "0.5rem"
+                        }}
+                      >
+                        {petition.status === "open" && (
+                          <>
+                            <Button
+                              onClick={() =>
+                                supportPetition(
+                                  tribe.id,
+                                  petition.id
+                                )
+                              }
+                            >
+                              Support Petition
+                            </Button>
+
+                            {!isCurrentSponsor && (
+                              <Button
+                                onClick={() =>
+                                  requestSponsorship(
+                                    tribe.id,
+                                    petition.id
+                                  )
+                                }
+                              >
+                                Request Sponsorship
+                              </Button>
+                            )}
+                          </>
+                        )}
+
+                        {pendingInvite && (
+                          <>
+                            <Button
+                              onClick={() =>
+                                respondToInvite(
+                                  tribe.id,
+                                  pendingInvite.id,
+                                  "accepted"
+                                )
+                              }
+                            >
+                              Accept Invite
+                            </Button>
+
+                            <Button
+                              onClick={() =>
+                                respondToInvite(
+                                  tribe.id,
+                                  pendingInvite.id,
+                                  "declined"
+                                )
+                              }
+                            >
+                              Decline Invite
+                            </Button>
+                          </>
+                        )}
+
+                        {isCurrentSponsor &&
+                          petition.status === "draft" && (
+                            <Button
+                              onClick={() =>
+                                setActiveSponsorInviteId(
+                                  activeSponsorInviteId ===
+                                    petition.id
+                                    ? null
+                                    : petition.id
+                                )
+                              }
+                            >
+                              Invite Sponsor
+                            </Button>
+                          )}
+
+                        {isCurrentSponsor &&
+                          ["draft", "open"].includes(
+                            petition.status
+                          ) && (
+                            <Button
+                              onClick={() =>
+                                leaveSponsorship(
+                                  tribe.id,
+                                  petition.id
+                                )
+                              }
+                            >
+                              Leave Sponsorship
+                            </Button>
+                          )}
+                      </div>
+
+                      {activeSponsorInviteId === petition.id && (
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "0.5rem",
+                            marginTop: "0.5rem"
+                          }}
+                        >
+                          <input
+                            style={fieldStyle}
+                            value={sponsorInviteName}
+                            onChange={(event) =>
+                              setSponsorInviteName(
+                                event.target.value
+                              )
+                            }
+                            placeholder="Character name"
+                          />
+
+                          <Button
+                            onClick={() =>
+                              inviteSponsor(
+                                tribe.id,
+                                petition.id
+                              )
+                            }
+                          >
+                            Send Invite
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </Card>
